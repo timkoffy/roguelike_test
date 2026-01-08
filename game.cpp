@@ -1,15 +1,17 @@
 #include "game.h"
 
+#include <chrono>
 #include <iostream>
-#include <unistd.h>
+#include <thread>
+#include <stdio.h>
 
 #include "draw.h"
 
-std::vector<std::vector<int>> game::brushedBlocks;
+std::vector<std::vector<int>> game::colorLayer;
 int game::playerX = 0;
 int game::playerY = 0;
 int game::direction = 0;
-int game::blocksCount = 0;
+int game::ticks = 0;
 
 void game::runTime(int rows, int cols) {
     // createInitialField();
@@ -18,33 +20,38 @@ void game::runTime(int rows, int cols) {
     char* buf = (char*)malloc(BUFFER_SIZE);
     readFromFile(buf);
 
-    brushedBlocks.resize(ROWS, std::vector(COLS, -1));
+    colorLayer.resize(ROWS, std::vector(COLS, -1));
     for (int i = 0; i < ROWS; i++) {
         for (int j = 0; j < COLS; j++) {
-            brushedBlocks[i][j] = draw::FIELD_COLOR;
+            colorLayer[i][j] = draw::FIELD_COLOR;
         }
     }
-
     draw::wallShader(buf);
-
     draw::lightShader(buf);
 
     while (true) {
-        system("stty -icanon -echo");
-
         int key = getchar();
-        switch (key) {
-            case 'w': move(buf, 0); break;
-            case 'a': move(buf, 1); break;
-            case 's': move(buf, 2); break;
-            case 'd': move(buf, 3); break;
-            case 'f': placeBlockInFrontOfPlayer(buf); break;
-            case 'c': destroyBlockInFrontOfPlayer(buf); break;
-            case 'q': free(buf); std::cout << "\033[2J\033[1;1H"; return;
-            default: break;
+        if (key != EOF) {
+            switch (key) {
+                case 'w': move(buf, 0); break;
+                case 'a': move(buf, 1); break;
+                case 's': move(buf, 2); break;
+                case 'd': move(buf, 3); break;
+                case 'f': placeBlockInFrontOfPlayer(buf); break;
+                case 'c': destroyBlockInFrontOfPlayer(buf); break;
+                case 'q': free(buf); std::cout << "\033[2J\033[1;1H"; return;
+                default: break;
+            }
         }
 
+        ticks++;
+
+        const auto start = std::chrono::high_resolution_clock::now();
         draw::drawField(buf, rows, cols);
+        const auto end = std::chrono::high_resolution_clock::now();
+        const auto delta = end - start;
+
+        std::this_thread::sleep_for(FRAME_TIME - delta);
     }
 }
 
@@ -129,7 +136,7 @@ void game::placeBlockInFrontOfPlayer(char* buf) {
         return;
 
     editByteInFile(buf, x, y, '@');
-    brushedBlocks[y][x] = draw::WALL_COLOR;
+    colorLayer[y][x] = draw::WALL_COLOR;
     draw::lightShader(buf);
 }
 
@@ -141,6 +148,6 @@ void game::destroyBlockInFrontOfPlayer(char* buf) {
         return;
 
     editByteInFile(buf, x, y, '.');
-    brushedBlocks[y][x] = draw::FIELD_COLOR;
+    colorLayer[y][x] = draw::FIELD_COLOR;
     draw::lightShader(buf);
 }

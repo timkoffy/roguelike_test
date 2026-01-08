@@ -1,10 +1,15 @@
 #ifndef ROGUELIKE_TEST_GAME_H
 #define ROGUELIKE_TEST_GAME_H
+#include <chrono>
 #include <vector>
 
-constexpr int ROWS = 10;
-constexpr int COLS = 20;
+constexpr int ROWS = 20;
+constexpr int COLS = 30;
+constexpr int VIEWPORT_ROWS = 11;
+constexpr int VIEWPORT_COLS = 19;
 constexpr int BUFFER_SIZE = ROWS * COLS;
+
+constexpr std::chrono::milliseconds FRAME_TIME(16);
 
 class game {
 public:
@@ -18,11 +23,12 @@ public:
     static void placeBlockInFrontOfPlayer(char* buf);
     static void destroyBlockInFrontOfPlayer(char* buf);
 
-    static std::vector<std::vector<int>> brushedBlocks;
+    static std::vector<std::vector<int>> colorLayer;
     static int playerX;
     static int playerY;
     static int direction;
-    static int blocksCount;
+    static int ticks;
+
 };
 
 
