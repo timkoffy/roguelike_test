@@ -1,9 +1,8 @@
+#include "game.hpp"
 #include <cstdlib>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#include "game.h"
 
 int main() {
     winsize w;
@@ -14,5 +13,7 @@ int main() {
 
     system("stty -icanon -echo");
 
-    game::runTime(w.ws_row, w.ws_col);
+    Game::createInitialField();
+
+    Game::runTime(w.ws_row, w.ws_col);
 }

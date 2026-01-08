@@ -1,153 +1,155 @@
-#include "game.h"
-
+#include "game.hpp"
 #include <chrono>
 #include <iostream>
 #include <thread>
-#include <stdio.h>
 
-#include "draw.h"
+namespace Game {
+    char buf[ROWS][COLS];
+    int colorLayer[ROWS][COLS];
+    int playerX = 0;
+    int playerY = 0;
+    int direction = 0;
+    int ticks = 0;
+    int viewportCenterX = 0;
+    int viewportCenterY = 0;
 
-std::vector<std::vector<int>> game::colorLayer;
-int game::playerX = 0;
-int game::playerY = 0;
-int game::direction = 0;
-int game::ticks = 0;
+    void runTime(int rows, int cols) {
+        std::cout << "\033[2J\033[1;1H" << "press any key...";
+        readFromFile();
 
-void game::runTime(int rows, int cols) {
-    // createInitialField();
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                colorLayer[i][j] = Colors::FIELD_COLOR;
+            }
+        }
+        wallShader();
+        lightShader();
 
-    std::cout << "\033[2J\033[1;1H" << "press any key...";
-    char* buf = (char*)malloc(BUFFER_SIZE);
-    readFromFile(buf);
+        // game loop
+        while (true) {
+            int key = getchar();
+            if (key != EOF) {
+                switch (key) {
+                    case 'w': case 'k': move(UP); break;
+                    case 'a': case 'h': move(LEFT); break;
+                    case 's': case 'j': move(DOWN); break;
+                    case 'd': case 'l': move(RIGHT); break;
+                    case 'f': placeBlockInFrontOfPlayer(); break;
+                    case 'c': destroyBlockInFrontOfPlayer(); break;
+                    case 'q': std::cout << "\033[2J\033[1;1H"; return;
+                    default: break;
+                }
+            }
 
-    colorLayer.resize(ROWS, std::vector(COLS, -1));
-    for (int i = 0; i < ROWS; i++) {
-        for (int j = 0; j < COLS; j++) {
-            colorLayer[i][j] = draw::FIELD_COLOR;
+            ticks++;
+
+            // sync fps to 60
+            const auto start = std::chrono::high_resolution_clock::now();
+            drawField(rows, cols);
+            const auto end = std::chrono::high_resolution_clock::now();
+            const auto delta = end - start;
+
+            std::this_thread::sleep_for(FRAME_TIME - delta);
         }
     }
-    draw::wallShader(buf);
-    draw::lightShader(buf);
 
-    while (true) {
-        int key = getchar();
-        if (key != EOF) {
-            switch (key) {
-                case 'w': move(buf, 0); break;
-                case 'a': move(buf, 1); break;
-                case 's': move(buf, 2); break;
-                case 'd': move(buf, 3); break;
-                case 'f': placeBlockInFrontOfPlayer(buf); break;
-                case 'c': destroyBlockInFrontOfPlayer(buf); break;
-                case 'q': free(buf); std::cout << "\033[2J\033[1;1H"; return;
-                default: break;
+    // data managing
+    void readFromFile() {
+        FILE* f = fopen("data.dat", "rb");
+        fread(buf, 1, ROWS * COLS, f);
+        fread(&playerX, sizeof(int), 1, f);
+        fread(&playerY, sizeof(int), 1, f);
+        fread(&direction, sizeof(int), 1, f);
+        fclose(f);
+    }
+
+    void saveToFile() {
+        FILE* f = fopen("data.dat", "wb");
+        fwrite(buf, 1, ROWS * COLS, f);
+        fwrite(&playerX, sizeof(int), 1, f);
+        fwrite(&playerY, sizeof(int), 1, f);
+        fwrite(&direction, sizeof(int), 1, f);
+        fclose(f);
+    }
+
+    void editByteInFile(int x, int y, char ch) {
+        FILE* f = fopen("data.dat", "rb+");
+        fseek(f, y * COLS + x, SEEK_SET);
+        fwrite(&ch, 1, 1, f);
+        buf[y][x] = ch;
+        fclose(f);
+    }
+
+    // reset all data
+    void createInitialField() {
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                buf[i][j] = '.';
             }
         }
 
-        ticks++;
+        buf[8][17] = '$';
+        buf[3][5] = '$';
 
-        const auto start = std::chrono::high_resolution_clock::now();
-        draw::drawField(buf, rows, cols);
-        const auto end = std::chrono::high_resolution_clock::now();
-        const auto delta = end - start;
-
-        std::this_thread::sleep_for(FRAME_TIME - delta);
-    }
-}
-
-void game::readFromFile(char* buf) {
-    FILE* f = fopen("data.dat", "rb");
-    fread(buf, 1, BUFFER_SIZE, f);
-    fread(&playerX, sizeof(int), 1, f);
-    fread(&playerY, sizeof(int), 1, f);
-    fread(&direction, sizeof(int), 1, f);
-    fclose(f);
-}
-
-void game::saveToFile(char* buf) {
-    FILE* f = fopen("data.dat", "wb");
-    fwrite(buf, 1, BUFFER_SIZE, f);
-    fwrite(&playerX, sizeof(int), 1, f);
-    fwrite(&playerY, sizeof(int), 1, f);
-    fwrite(&direction, sizeof(int), 1, f);
-    fclose(f);
-}
-
-void game::editByteInFile(char* buf, int x, int y, char ch) {
-    FILE* f = fopen("data.dat", "rb+");
-    fseek(f, y * COLS + x, SEEK_SET);
-    fwrite(&ch, 1, 1, f);
-    buf[y * COLS + x] = ch;
-    fclose(f);
-}
-
-void game::createInitialField() {
-    char* tmp = (char*)malloc(BUFFER_SIZE);
-
-    for (int i = 0; i < BUFFER_SIZE; i++)
-        tmp[i] = '.';
-    tmp[8 * COLS + 17] = '$';
-    tmp[3 * COLS + 5] = '$';
-    playerX = 0;
-    playerY = 0;
-    direction = 0;
-    saveToFile(tmp);
-    free(tmp);
-}
-
-std::pair<int, int> getCoordinatesInDirection(std::pair<int, int> point, int dir) {
-    int x = point.first,
-        y = point.second;
-
-    switch (dir) {
-        case 0: y--; break;
-        case 1: x--; break;
-        case 2: y++; break;
-        case 3: x++; break;
-        default: break;
+        playerX = 0;
+        playerY = 0;
+        direction = 0;
+        saveToFile();
     }
 
-    if (x < 0 || x >= COLS || y < 0 || y >= ROWS)
-        return {point.first, point.second};
-    return {x, y};
-}
+    // help function
+    std::pair<int, int> getCoordinatesInDirection(std::pair<int, int> point, int dir) {
+        int x = point.first,
+            y = point.second;
 
-void game::move(char *buf, int dir) {
-    auto newCoords = getCoordinatesInDirection({playerX, playerY}, dir);
-    int x = newCoords.first, y = newCoords.second;
+        switch (dir) {
+            case 0: y--; break;
+            case 1: x--; break;
+            case 2: y++; break;
+            case 3: x++; break;
+            default: break;
+        }
 
-    if (buf[y * COLS + x] != '.') {
+        if (x < 0 || x >= COLS || y < 0 || y >= ROWS)
+            return {point.first, point.second};
+        return {x, y};
+    }
+
+    void move(int dir) {
+        auto newCoords = getCoordinatesInDirection({playerX, playerY}, dir);
+        int x = newCoords.first, y = newCoords.second;
+
+        if (buf[y][x] != '.') {
+            direction = dir;
+            return;
+        }
+        playerX = x;
+        playerY = y;
         direction = dir;
-        return;
+        saveToFile();
     }
 
-    playerX = x;
-    playerY = y;
-    direction = dir;
-    saveToFile(buf);
-}
+    void placeBlockInFrontOfPlayer() {
+        auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
+        int x = newCoords.first, y = newCoords.second;
 
+        if (buf[y][x] != '.')
+            return;
 
-void game::placeBlockInFrontOfPlayer(char* buf) {
-    auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
-    int x = newCoords.first, y = newCoords.second;
+        editByteInFile(x, y, '@');
+        colorLayer[y][x] = Colors::WALL_COLOR;
+        lightShader();
+    }
 
-    if (buf[y * COLS + x] != '.')
-        return;
+    void destroyBlockInFrontOfPlayer() {
+        auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
+        int x = newCoords.first, y = newCoords.second;
 
-    editByteInFile(buf, x, y, '@');
-    colorLayer[y][x] = draw::WALL_COLOR;
-    draw::lightShader(buf);
-}
+        if (buf[y][x] != '@')
+            return;
 
-void game::destroyBlockInFrontOfPlayer(char* buf) {
-    auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
-    int x = newCoords.first, y = newCoords.second;
-
-    if (buf[y * COLS + x] != '@')
-        return;
-
-    editByteInFile(buf, x, y, '.');
-    colorLayer[y][x] = draw::FIELD_COLOR;
-    draw::lightShader(buf);
+        editByteInFile(x, y, '.');
+        colorLayer[y][x] = Colors::FIELD_COLOR;
+        lightShader();
+    }
 }
