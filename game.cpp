@@ -3,8 +3,10 @@
 #include <iostream>
 #include <thread>
 
+#include "cell.h"
+
 namespace Game {
-    std::array<std::array<char, COLS>, ROWS> buf;
+    std::array<std::array<Cell, COLS>, ROWS> buf;
     std::array<std::array<int, COLS>, ROWS> colorLayer;
     std::array<std::array<bool, COLS>, ROWS> isItalicLayer {false};
     int playerX = 0;
@@ -57,7 +59,13 @@ namespace Game {
     // data managing
     void readFromFile() {
         FILE* f = fopen("data.dat", "rb");
-        fread(&buf, 1, ROWS * COLS, f);
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
+                char ch;
+                fread(&ch, 1, 1, f);
+                buf.at(y).at(x) = Cell(x, y, ch);
+            }
+        }
         fread(&playerX, sizeof(int), 1, f);
         fread(&playerY, sizeof(int), 1, f);
         fread(&direction, sizeof(int), 1, f);
@@ -66,7 +74,12 @@ namespace Game {
 
     void saveToFile() {
         FILE* f = fopen("data.dat", "wb");
-        fwrite(&buf, 1, ROWS * COLS, f);
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
+                char ch = buf.at(y).at(x).getChar();
+                fwrite(&ch, 1, 1, f);
+            }
+        }
         fwrite(&playerX, sizeof(int), 1, f);
         fwrite(&playerY, sizeof(int), 1, f);
         fwrite(&direction, sizeof(int), 1, f);
@@ -77,20 +90,20 @@ namespace Game {
         FILE* f = fopen("data.dat", "rb+");
         fseek(f, y * COLS + x, SEEK_SET);
         fwrite(&ch, 1, 1, f);
-        buf[y][x] = ch;
+        buf.at(y).at(x).setChar(ch);
         fclose(f);
     }
 
     // reset all data
     void createInitialField() {
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLS; j++) {
-                buf[i][j] = '.';
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
+                buf.at(y).at(x).setChar('.');
             }
         }
 
-        buf[8][17] = '$';
-        buf[3][5] = '$';
+        buf.at(8).at(17).setChar('$');
+        buf.at(3).at(5).setChar('$');
 
         playerX = 0;
         playerY = 0;
@@ -120,7 +133,7 @@ namespace Game {
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, dir);
         int x = newCoords.first, y = newCoords.second;
 
-        if (buf[y][x] != '.') {
+        if (buf.at(y).at(x).getChar() != '.') {
             direction = dir;
             return;
         }
@@ -143,11 +156,11 @@ namespace Game {
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
         int x = newCoords.first, y = newCoords.second;
 
-        if (buf[y][x] != '.')
+        if (buf.at(y).at(x).getChar() != '.')
             return;
 
         editByteInFile(x, y, block);
-        colorLayer[y][x] = Colors::WALL_COLOR;
+        colorLayer.at(y).at(x) = Colors::WALL_COLOR;
         lightShader();
     }
 
@@ -155,11 +168,8 @@ namespace Game {
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
         int x = newCoords.first, y = newCoords.second;
 
-        // if (buf[y][x] != '@')
-        //     return;
-
         editByteInFile(x, y, '.');
-        colorLayer[y][x] = Colors::FIELD_COLOR;
+        colorLayer.at(y).at(x) = Colors::FIELD_COLOR;
         lightShader();
     }
 }

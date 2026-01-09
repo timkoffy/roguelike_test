@@ -2,6 +2,8 @@
 #include <chrono>
 #include <utility>
 
+class Cell;
+
 namespace Game {
     constexpr int ROWS = 50;
     constexpr int COLS = 50;
@@ -27,7 +29,7 @@ namespace Game {
         RIGHT
     };
 
-    extern std::array<std::array<char, COLS>, ROWS> buf;
+    extern std::array<std::array<Cell, COLS>, ROWS> buf;
     extern std::array<std::array<int, COLS>, ROWS> colorLayer;
     extern std::array<std::array<bool, COLS>, ROWS> isItalicLayer;
     extern int playerX;

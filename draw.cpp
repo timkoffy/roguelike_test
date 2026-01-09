@@ -1,6 +1,8 @@
 #include "game.hpp"
 #include <iostream>
 
+#include "cell.h"
+
 namespace Game {
     // draw viewport field (segment from buffer)
     void drawField(int rows, int cols) {
@@ -8,10 +10,10 @@ namespace Game {
         std::cout << "ticks: " << ticks << " x: " << playerX << " y: " << playerY;
         {
             // top side padding
-            int i = (rows - VIEWPORT_ROWS) / 2;
-            while (i > 0) {
+            int y = (rows - VIEWPORT_ROWS) / 2;
+            while (y > 0) {
                 std::cout << '\n';
-                i--;
+                y--;
             }
         }
 
@@ -20,27 +22,27 @@ namespace Game {
         int rightViewportX = leftViewportX + VIEWPORT_COLS,
             bottomViewportY = topViewportY + VIEWPORT_ROWS;
 
-        for (int i = topViewportY; i < bottomViewportY; i++) {
+        for (int y = topViewportY; y < bottomViewportY; y++) {
             // left side padding
-            for (int j = 0; j < cols / 2 - VIEWPORT_COLS; j++)
+            for (int x = 0; x < cols / 2 - VIEWPORT_COLS; x++)
                 std::cout << ' ';
             // paste buffer
-            for (int j = leftViewportX; j < rightViewportX; j++) {
-                if (j == playerX && i == playerY ) {
+            for (int x = leftViewportX; x < rightViewportX; x++) {
+                if (x == playerX && y == playerY ) {
                     std::cout << '&' << ' ';
                     continue;
                 }
                 const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
-                if (j == directionPointer.first && i == directionPointer.second) {
-                    std::cout << "\033[38;5;" << Colors::DIRECTION_POINTER_COLOR << "m" << buf[i][j] << "\033[0m" << ' ';
+                if (x == directionPointer.first && y == directionPointer.second) {
+                    std::cout << "\033[38;5;" << Colors::DIRECTION_POINTER_COLOR << "m" << buf.at(y).at(x).getChar() << "\033[0m" << ' ';
                     continue;
                 }
-                int color = colorLayer[i][j];
-                if (isItalicLayer[i][j]) {
-                    std::cout << "\033[3m\033[38;5;" << color << "m" << buf[i][j] << "\033[0m\033[23m" << ' ';
+                int color = colorLayer.at(y).at(x);
+                if (isItalicLayer.at(y).at(x)) {
+                    std::cout << "\033[3m\033[38;5;" << color << "m" << buf.at(y).at(x).getChar() << "\033[0m\033[23m" << ' ';
                     continue;
                 }
-                std::cout << "\033[38;5;" << color << "m" << buf[i][j] << "\033[0m" << ' ';
+                std::cout << "\033[38;5;" << color << "m" << buf.at(y).at(x).getChar() << "\033[0m" << ' ';
             } std::cout << '\n';
         }
         std::cout.flush();
@@ -65,19 +67,19 @@ namespace Game {
     }
 
     void resetShader() {
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLS; j++) {
-                colorLayer[i][j] = Colors::FIELD_COLOR;
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
+                colorLayer.at(y).at(x) = Colors::FIELD_COLOR;
             }
         }
     }
 
     // shader for walls
     void wallShader() {
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLS; j++) {
-                if (buf[i][j] != '.') {
-                    colorLayer[i][j] = Colors::WALL_COLOR;
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
+                if (buf.at(y).at(x).getChar() != '.') {
+                    colorLayer.at(y).at(x) = Colors::WALL_COLOR;
                 }
             }
         }
@@ -88,35 +90,37 @@ namespace Game {
         resetShader();
         wallShader();
 
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLS; j++) {
-                if (buf[i][j] == '$') {
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
+                if (buf.at(y).at(x).getChar() == '$') {
                     for (int k = 0; k < 25; k++) {
-                        int row = i - 2 + (k - k%5) / 5,
-                            col = j - 2 + k % 5;
+                        int row = y - 2 + (k - k%5) / 5,
+                            col = x - 2 + k % 5;
                         if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-                            if (buf[row][col] == '$') continue;
-                            if (buf[row][col] != '.') {
-                                if (colorLayer[row][col] != Colors::WALL_LIGHT_NEAR_COLOR)
-                                    colorLayer[row][col] = Colors::WALL_LIGHT_FAR_COLOR;
+                            char ch = buf.at(row).at(col).getChar();
+                            if (ch == '$') continue;
+                            if (ch != '.') {
+                                if (colorLayer.at(row).at(col) != Colors::WALL_LIGHT_NEAR_COLOR)
+                                    colorLayer.at(row).at(col) = Colors::WALL_LIGHT_FAR_COLOR;
                                 continue;
                             }
-                            if (colorLayer[row][col] != Colors::LIGHT_NEAR_COLOR)
-                                colorLayer[row][col] = Colors::LIGHT_FAR_COLOR;
+                            if (colorLayer.at(row).at(col) != Colors::LIGHT_NEAR_COLOR)
+                                colorLayer.at(row).at(col) = Colors::LIGHT_FAR_COLOR;
                         }
                     }
                     for (int k = 0; k < 9; k++) {
-                        int row = i - 1 + (k - k%3) / 3,
-                            col = j - 1 + k % 3;
+                        int row = y - 1 + (k - k%3) / 3,
+                            col = x - 1 + k % 3;
                         if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-                            if (buf[row][col] == '$') continue;
-                            if (buf[row][col] != '.') {
-                                colorLayer[row][col] = Colors::WALL_LIGHT_NEAR_COLOR;
+                            char ch = buf.at(row).at(col).getChar();
+                            if (ch == '$') continue;
+                            if (ch != '.') {
+                                colorLayer.at(row).at(col) = Colors::WALL_LIGHT_NEAR_COLOR;
                                 continue;
-                            } colorLayer[row][col] = Colors::LIGHT_NEAR_COLOR;
+                            } colorLayer.at(row).at(col) = Colors::LIGHT_NEAR_COLOR;
                         }
                     }
-                    colorLayer[i][j] = Colors::LIGHT_SOURCE_COLOR;
+                    colorLayer.at(y).at(x) = Colors::LIGHT_SOURCE_COLOR;
                 }
             }
         }
@@ -125,13 +129,13 @@ namespace Game {
     void updateAnimations() {
         if (lastTick + 50 == ticks) {
             lastTick = ticks;
-            for (int i = 0; i < ROWS; i++) {
-                for (int j = 0; j < COLS; j++) {
-                    if (buf[i][j] == '$') {
-                        isItalicLayer[i][j] = !isItalicLayer[i][j];
+            for (int y = 0; y < ROWS; y++) {
+                for (int x = 0; x < COLS; x++) {
+                    if (buf.at(y).at(x).getChar() == '$') {
+                        isItalicLayer.at(y).at(x) = !isItalicLayer[y][x];
                         continue;
                     }
-                    isItalicLayer[i][j] = false;
+                    isItalicLayer.at(y).at(x)  = false;
                 }
             }
         }
