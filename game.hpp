@@ -2,7 +2,7 @@
 #include <chrono>
 #include <utility>
 
-class Cell;
+#include "entity.h"
 
 namespace Game {
     constexpr int ROWS = 50;
@@ -29,16 +29,18 @@ namespace Game {
         RIGHT
     };
 
-    extern std::array<std::array<Cell, COLS>, ROWS> buf;
+    extern std::array<std::array<Cell, COLS>, ROWS> baseLayer;
+    extern std::array<std::array<char, VIEWPORT_COLS>, VIEWPORT_ROWS> entityLayer;
     extern std::array<std::array<int, COLS>, ROWS> colorLayer;
     extern std::array<std::array<bool, COLS>, ROWS> isItalicLayer;
+
+    extern std::vector<Entity> entities;
+
     extern int playerX;
     extern int playerY;
     extern int direction;
     extern int ticks;
     extern int lastTick;
-    extern int viewportCenterX;
-    extern int viewportCenterY;
 
     // main functions
     void runTime(int rows, int cols);

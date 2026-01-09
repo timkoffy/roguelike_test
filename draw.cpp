@@ -7,10 +7,11 @@ namespace Game {
     // draw viewport field (segment from buffer)
     void drawField(int rows, int cols) {
         std::cout << "\033[2J\033[1;1H\033[?25l";
-        std::cout << "ticks: " << ticks << " x: " << playerX << " y: " << playerY;
+        std::cout << "WASD / HJKL - move, QE - rotate, F - block, R - light, C - destroy, Z - exit\n"
+                     "ticks: " << ticks << " x: " << playerX << " y: " << playerY;
         {
             // top side padding
-            int y = (rows - VIEWPORT_ROWS) / 2;
+            int y = (rows - VIEWPORT_ROWS) / 2 - 1;
             while (y > 0) {
                 std::cout << '\n';
                 y--;
@@ -34,15 +35,15 @@ namespace Game {
                 }
                 const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
                 if (x == directionPointer.first && y == directionPointer.second) {
-                    std::cout << "\033[38;5;" << Colors::DIRECTION_POINTER_COLOR << "m" << buf.at(y).at(x).getChar() << "\033[0m" << ' ';
+                    std::cout << "\033[38;5;" << Colors::DIRECTION_POINTER_COLOR << "m" << baseLayer.at(y).at(x).getChar() << "\033[0m" << ' ';
                     continue;
                 }
                 int color = colorLayer.at(y).at(x);
                 if (isItalicLayer.at(y).at(x)) {
-                    std::cout << "\033[3m\033[38;5;" << color << "m" << buf.at(y).at(x).getChar() << "\033[0m\033[23m" << ' ';
+                    std::cout << "\033[3m\033[38;5;" << color << "m" << baseLayer.at(y).at(x).getChar() << "\033[0m\033[23m" << ' ';
                     continue;
                 }
-                std::cout << "\033[38;5;" << color << "m" << buf.at(y).at(x).getChar() << "\033[0m" << ' ';
+                std::cout << "\033[38;5;" << color << "m" << baseLayer.at(y).at(x).getChar() << "\033[0m" << ' ';
             } std::cout << '\n';
         }
         std::cout.flush();
@@ -50,11 +51,8 @@ namespace Game {
 
     // update viewport range
     void updateViewportCenterCoordinates(int* leftViewportXPtr, int* topViewportYPtr) {
-        viewportCenterX = playerX;
-        viewportCenterY = playerY;
-
-        int leftViewportX = viewportCenterX - VIEWPORT_COLS / 2;
-        int topViewportY = viewportCenterY - VIEWPORT_ROWS / 2;
+        int leftViewportX = playerX - VIEWPORT_COLS / 2;
+        int topViewportY = playerY - VIEWPORT_ROWS / 2;
 
         if (leftViewportX < 0) leftViewportX = 0;
         else if (leftViewportX + VIEWPORT_COLS >= COLS) leftViewportX = COLS - VIEWPORT_COLS;
@@ -78,7 +76,7 @@ namespace Game {
     void wallShader() {
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
-                if (buf.at(y).at(x).getChar() != '.') {
+                if (baseLayer.at(y).at(x).getChar() != '.') {
                     colorLayer.at(y).at(x) = Colors::WALL_COLOR;
                 }
             }
@@ -92,12 +90,12 @@ namespace Game {
 
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
-                if (buf.at(y).at(x).getChar() == '$') {
+                if (baseLayer.at(y).at(x).getChar() == '$') {
                     for (int k = 0; k < 25; k++) {
                         int row = y - 2 + (k - k%5) / 5,
                             col = x - 2 + k % 5;
                         if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-                            char ch = buf.at(row).at(col).getChar();
+                            char ch = baseLayer.at(row).at(col).getChar();
                             if (ch == '$') continue;
                             if (ch != '.') {
                                 if (colorLayer.at(row).at(col) != Colors::WALL_LIGHT_NEAR_COLOR)
@@ -112,7 +110,7 @@ namespace Game {
                         int row = y - 1 + (k - k%3) / 3,
                             col = x - 1 + k % 3;
                         if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-                            char ch = buf.at(row).at(col).getChar();
+                            char ch = baseLayer.at(row).at(col).getChar();
                             if (ch == '$') continue;
                             if (ch != '.') {
                                 colorLayer.at(row).at(col) = Colors::WALL_LIGHT_NEAR_COLOR;
@@ -131,11 +129,11 @@ namespace Game {
             lastTick = ticks;
             for (int y = 0; y < ROWS; y++) {
                 for (int x = 0; x < COLS; x++) {
-                    if (buf.at(y).at(x).getChar() == '$') {
+                    if (baseLayer.at(y).at(x).getChar() == '$') {
                         isItalicLayer.at(y).at(x) = !isItalicLayer[y][x];
                         continue;
                     }
-                    isItalicLayer.at(y).at(x)  = false;
+                    isItalicLayer.at(y).at(x) = false;
                 }
             }
         }

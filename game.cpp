@@ -4,18 +4,21 @@
 #include <thread>
 
 #include "cell.h"
+#include "entity.h"
 
 namespace Game {
-    std::array<std::array<Cell, COLS>, ROWS> buf;
+    std::array<std::array<Cell, COLS>, ROWS> baseLayer;
+    std::array<std::array<char, VIEWPORT_COLS>, VIEWPORT_ROWS> entityLayer;
     std::array<std::array<int, COLS>, ROWS> colorLayer;
     std::array<std::array<bool, COLS>, ROWS> isItalicLayer {false};
+
+    std::vector<Entity> entities;
+
     int playerX = 0;
     int playerY = 0;
     int direction = 0;
     int ticks = 0;
     int lastTick = 0;
-    int viewportCenterX = 0;
-    int viewportCenterY = 0;
 
     void runTime(int rows, int cols) {
         std::cout << "\033[2J\033[1;1H" << "press any key...";
@@ -59,30 +62,71 @@ namespace Game {
     // data managing
     void readFromFile() {
         FILE* f = fopen("data.dat", "rb");
+
+        // deserialize field data
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
                 char ch;
                 fread(&ch, 1, 1, f);
-                buf.at(y).at(x) = Cell(x, y, ch);
+                baseLayer.at(y).at(x) = Cell(x, y, ch);
             }
         }
+
+        // deserialize player data
         fread(&playerX, sizeof(int), 1, f);
         fread(&playerY, sizeof(int), 1, f);
         fread(&direction, sizeof(int), 1, f);
+
+        // deserialize entities
+        int entityId, entityX, entityY;
+        while (fread(&entityId, sizeof(int), 1, f) == 1) {
+            if (entityId == -1) break;
+            fread(&entityX, sizeof(int), 1, f);
+            fread(&entityY, sizeof(int), 1, f);
+            entities.emplace_back(entityX, entityY, ' ', entityId);
+        }
+
         fclose(f);
     }
 
     void saveToFile() {
         FILE* f = fopen("data.dat", "wb");
+
+        // serialize field data
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
-                char ch = buf.at(y).at(x).getChar();
+                char ch = baseLayer.at(y).at(x).getChar();
                 fwrite(&ch, 1, 1, f);
             }
         }
+
+        // serialize player data
         fwrite(&playerX, sizeof(int), 1, f);
         fwrite(&playerY, sizeof(int), 1, f);
         fwrite(&direction, sizeof(int), 1, f);
+
+        // serialize entities
+        int entityId, entityX, entityY;
+
+        if (entities.empty()) {
+            entityId = -1;
+            fwrite(&entityId, sizeof(int), 1, f);
+            fclose(f);
+            return;
+        }
+
+        for (const auto& entity : entities) {
+            entityId = entity.getId();
+            entityX = entity.getX();
+            entityY = entity.getY();
+
+            fwrite(&entityId, sizeof(int), 1, f);
+            fwrite(&entityX, sizeof(int), 1, f);
+            fwrite(&entityY, sizeof(int), 1, f);
+        }
+
+        entityId = -1;
+        fwrite(&entityId, sizeof(int), 1, f);
         fclose(f);
     }
 
@@ -90,7 +134,7 @@ namespace Game {
         FILE* f = fopen("data.dat", "rb+");
         fseek(f, y * COLS + x, SEEK_SET);
         fwrite(&ch, 1, 1, f);
-        buf.at(y).at(x).setChar(ch);
+        baseLayer.at(y).at(x).setChar(ch);
         fclose(f);
     }
 
@@ -98,12 +142,12 @@ namespace Game {
     void createInitialField() {
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
-                buf.at(y).at(x).setChar('.');
+                baseLayer.at(y).at(x).setChar('.');
             }
         }
 
-        buf.at(8).at(17).setChar('$');
-        buf.at(3).at(5).setChar('$');
+        baseLayer.at(8).at(17).setChar('$');
+        baseLayer.at(3).at(5).setChar('$');
 
         playerX = 0;
         playerY = 0;
@@ -133,7 +177,7 @@ namespace Game {
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, dir);
         int x = newCoords.first, y = newCoords.second;
 
-        if (buf.at(y).at(x).getChar() != '.') {
+        if (baseLayer.at(y).at(x).getChar() != '.') {
             direction = dir;
             return;
         }
@@ -156,7 +200,7 @@ namespace Game {
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
         int x = newCoords.first, y = newCoords.second;
 
-        if (buf.at(y).at(x).getChar() != '.')
+        if (baseLayer.at(y).at(x).getChar() != '.')
             return;
 
         editByteInFile(x, y, block);
