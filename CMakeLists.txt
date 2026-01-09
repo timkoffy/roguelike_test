@@ -7,11 +7,6 @@ add_executable(roguelike_test main.cpp
         draw.cpp
         game.cpp
         game.hpp
-        cell.cpp
         cell.h
-        entity.cpp
         entity.h
-        player.cpp
-        player.h
-        entities.cpp
         entities.h)

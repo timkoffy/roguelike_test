@@ -11,27 +11,64 @@ namespace Entities {
     public:
         Orc(int x, int y) : Entity(x, y, 'o', 0, Game::Colors::ENTITY_ORC_COLOR) {
             isAnimated = true;
-            isWalkable = false;
+            isSolid = false;
 
             framesCount = 2;
             frames = {'o', 'O'};
             lastFrame = 0;
-            lastTick = 0;
+            lastAnimationTick = 0;
+            lastMovingTick = 0;
         }
 
         void update() override {
-            if (lastTick + 75 == Game::ticks) {
-                lastTick = Game::ticks;
+            if (lastAnimationTick + 75 <= Game::ticks) {
+                lastAnimationTick = Game::ticks;
                 lastFrame = (lastFrame + 1) % framesCount;
                 setChar(frames[lastFrame]);
             }
+
+            srand(x*y + time(nullptr));
+            if (lastMovingTick + (rand() % 200 + 200) <= Game::ticks) {
+                lastMovingTick = Game::ticks;
+                const auto newCoords = Game::getCoordinatesInDirection({x, y}, rand() % 4);
+
+                char ch = Game::baseLayer.at(newCoords.second).at(newCoords.first).getChar();
+                if (ch != '.' || (Game::playerX == newCoords.first && Game::playerY == newCoords.second) ) {
+                    return;
+                }
+
+                bool canMove = true;
+                for (const auto& entity : Game::entities) {
+                    if (entity.get() == this) continue;
+
+                    if (newCoords.first == entity->getX() && newCoords.second == entity->getY()) {
+                        canMove = false;
+                        break;
+                    }
+                } if (canMove) {
+                    x = newCoords.first;
+                    y = newCoords.second;
+                }
+            }
+        }
+
+        void onPlayerInteraction() override {
+            // orc have been pushed by player
+            const auto newCoords = Game::getCoordinatesInDirection({x, y}, Game::direction);
+            char ch = Game::baseLayer.at(newCoords.second).at(newCoords.first).getChar();
+            if (ch != '.' && ch != 'D') {
+                return;
+            }
+            x = newCoords.first;
+            y = newCoords.second;
         }
 
     private:
         int framesCount;
         std::array<char, 2> frames;
         int lastFrame;
-        int lastTick;
+        int lastAnimationTick;
+        int lastMovingTick;
     };
 }
 

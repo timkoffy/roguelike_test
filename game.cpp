@@ -44,6 +44,7 @@ namespace Game {
                     case 'e': rotateDirection(true); break;
                     case 'f': placeBlockInFrontOfPlayer('@'); break;
                     case 'r': placeBlockInFrontOfPlayer('$'); break;
+                    case 't': placeBlockInFrontOfPlayer('D'); break;
                     case 'c': destroyBlockInFrontOfPlayer(); break;
                     case 'z': std::cout << "\033[2J\033[1;1H"; return;
                     default: break;
@@ -51,7 +52,6 @@ namespace Game {
             }
 
             ticks++;
-
             updateAnimations();
 
             // sync fps to 60
@@ -179,25 +179,40 @@ namespace Game {
     }
 
     void move(int dir) {
+        direction = dir;
+
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, dir);
         int x = newCoords.first, y = newCoords.second;
 
-        if (baseLayer.at(y).at(x).getChar() != '.') {
-            direction = dir;
+        bool canMove = true;
+        for (const auto& entity : entities) {
+            if (x == entity->getX() && y == entity->getY()) {
+                if (entity->getIsSolid())
+                    canMove = false;
+                entity->onPlayerInteraction();
+                lightShader();
+                break;
+            }
+        }
+
+        char ch = baseLayer.at(y).at(x).getChar();
+        if (ch != '.' && ch != 'D') {
             return;
         }
-        playerX = x;
-        playerY = y;
-        direction = dir;
-        saveToFile();
+
+        if (canMove) {
+            playerX = x;
+            playerY = y;
+        }
+
+        saveToFile(); // soon: save only on exit
     }
 
     void rotateDirection(bool isClockwise) {
         if (isClockwise) {
             direction = (4 + direction - 1) % 4;
             return;
-        }
-        direction = (direction + 1) % 4;
+        } direction = (direction + 1) % 4;
     }
 
 

@@ -14,7 +14,7 @@ namespace Game {
     namespace Colors {
         constexpr int FIELD_COLOR = 59;
         constexpr int WALL_COLOR = 102;
-        constexpr int DIRECTION_POINTER_COLOR = 15;
+        constexpr int WHITE_COLOR = 15;
 
         constexpr int LIGHT_SOURCE_COLOR = 226;
         constexpr int LIGHT_NEAR_COLOR = 172;

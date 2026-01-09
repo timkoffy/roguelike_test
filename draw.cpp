@@ -41,7 +41,7 @@ namespace Game {
 
                 const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
                 if (x == directionPointer.first && y == directionPointer.second) {
-                    std::cout << "\033[38;5;" << Colors::DIRECTION_POINTER_COLOR << "m" << displayedChar << "\033[0m" << ' ';
+                    std::cout << "\033[38;5;" << Colors::WHITE_COLOR << "m" << displayedChar << "\033[0m" << ' ';
                     continue;
                 }
 
@@ -141,7 +141,7 @@ namespace Game {
             entityLayer.at(y).at(x) = entity->getChar();
         }
 
-        if (lastTick + 50 == ticks) {
+        if (lastTick + 50 <= ticks) {
             lastTick = ticks;
             for (int y = 0; y < ROWS; y++) {
                 for (int x = 0; x < COLS; x++) {
@@ -153,6 +153,8 @@ namespace Game {
                 }
             }
         }
+
+        lightShader();
     }
 
     void updateEntityLayer() {
