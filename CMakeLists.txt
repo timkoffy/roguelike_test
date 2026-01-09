@@ -12,4 +12,6 @@ add_executable(roguelike_test main.cpp
         entity.cpp
         entity.h
         player.cpp
-        player.h)
+        player.h
+        entities.cpp
+        entities.h)

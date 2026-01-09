@@ -13,7 +13,7 @@ int main() {
 
     system("stty -icanon -echo");
 
-    // Game::createInitialField();
+    Game::createInitialField();
 
     Game::runTime(w.ws_row, w.ws_col);
 }

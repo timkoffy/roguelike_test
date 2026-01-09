@@ -33,17 +33,24 @@ namespace Game {
                     std::cout << '&' << ' ';
                     continue;
                 }
+
+                char displayedChar = baseLayer.at(y).at(x).getChar();
+                if (entityLayer.at(y).at(x) != ' ') {
+                    displayedChar = entityLayer.at(y).at(x);
+                }
+
                 const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
                 if (x == directionPointer.first && y == directionPointer.second) {
-                    std::cout << "\033[38;5;" << Colors::DIRECTION_POINTER_COLOR << "m" << baseLayer.at(y).at(x).getChar() << "\033[0m" << ' ';
+                    std::cout << "\033[38;5;" << Colors::DIRECTION_POINTER_COLOR << "m" << displayedChar << "\033[0m" << ' ';
                     continue;
                 }
+
                 int color = colorLayer.at(y).at(x);
                 if (isItalicLayer.at(y).at(x)) {
-                    std::cout << "\033[3m\033[38;5;" << color << "m" << baseLayer.at(y).at(x).getChar() << "\033[0m\033[23m" << ' ';
+                    std::cout << "\033[3m\033[38;5;" << color << "m" << displayedChar << "\033[0m\033[23m" << ' ';
                     continue;
                 }
-                std::cout << "\033[38;5;" << color << "m" << baseLayer.at(y).at(x).getChar() << "\033[0m" << ' ';
+                std::cout << "\033[38;5;" << color << "m" << displayedChar << "\033[0m" << ' ';
             } std::cout << '\n';
         }
         std::cout.flush();
@@ -122,9 +129,18 @@ namespace Game {
                 }
             }
         }
+
+        updateEntityLayer();
     }
 
     void updateAnimations() {
+        for (auto& entity : entities) {
+            entity->update();
+            int x = entity->getX();
+            int y = entity->getY();
+            entityLayer.at(y).at(x) = entity->getChar();
+        }
+
         if (lastTick + 50 == ticks) {
             lastTick = ticks;
             for (int y = 0; y < ROWS; y++) {
@@ -136,6 +152,20 @@ namespace Game {
                     isItalicLayer.at(y).at(x) = false;
                 }
             }
+        }
+    }
+
+    void updateEntityLayer() {
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
+                entityLayer.at(y).at(x) = ' ';
+            }
+        }
+        for (const auto& entity : entities) {
+            int x = entity->getX();
+            int y = entity->getY();
+            entityLayer.at(y).at(x) = entity->getChar();
+            colorLayer.at(y).at(x) = entity->getColor();
         }
     }
 }

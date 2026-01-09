@@ -4,15 +4,16 @@
 #include <thread>
 
 #include "cell.h"
+#include "entities.h"
 #include "entity.h"
 
 namespace Game {
     std::array<std::array<Cell, COLS>, ROWS> baseLayer;
-    std::array<std::array<char, VIEWPORT_COLS>, VIEWPORT_ROWS> entityLayer;
+    std::array<std::array<char, COLS>, ROWS> entityLayer {' '};
     std::array<std::array<int, COLS>, ROWS> colorLayer;
     std::array<std::array<bool, COLS>, ROWS> isItalicLayer {false};
 
-    std::vector<Entity> entities;
+    std::vector<std::unique_ptr<Entity>> entities;
 
     int playerX = 0;
     int playerY = 0;
@@ -24,6 +25,10 @@ namespace Game {
         std::cout << "\033[2J\033[1;1H" << "press any key...";
 
         readFromFile();
+
+        entities.push_back(std::make_unique<Entities::Orc>(2, 6));
+        entities.push_back(std::make_unique<Entities::Orc>(5, 8));
+
         lightShader();
 
         // game loop
@@ -83,7 +88,7 @@ namespace Game {
             if (entityId == -1) break;
             fread(&entityX, sizeof(int), 1, f);
             fread(&entityY, sizeof(int), 1, f);
-            entities.emplace_back(entityX, entityY, ' ', entityId);
+            // entities.emplace_back();
         }
 
         fclose(f);
@@ -108,22 +113,22 @@ namespace Game {
         // serialize entities
         int entityId, entityX, entityY;
 
-        if (entities.empty()) {
-            entityId = -1;
-            fwrite(&entityId, sizeof(int), 1, f);
-            fclose(f);
-            return;
-        }
-
-        for (const auto& entity : entities) {
-            entityId = entity.getId();
-            entityX = entity.getX();
-            entityY = entity.getY();
-
-            fwrite(&entityId, sizeof(int), 1, f);
-            fwrite(&entityX, sizeof(int), 1, f);
-            fwrite(&entityY, sizeof(int), 1, f);
-        }
+        // if (entities.empty()) {
+        //     entityId = -1;
+        //     fwrite(&entityId, sizeof(int), 1, f);
+        //     fclose(f);
+        //     return;
+        // }
+        //
+        // for (const auto& entity : entities) {
+        //     entityId = entity.getId();
+        //     entityX = entity.getX();
+        //     entityY = entity.getY();
+        //
+        //     fwrite(&entityId, sizeof(int), 1, f);
+        //     fwrite(&entityX, sizeof(int), 1, f);
+        //     fwrite(&entityY, sizeof(int), 1, f);
+        // }
 
         entityId = -1;
         fwrite(&entityId, sizeof(int), 1, f);

@@ -5,14 +5,25 @@
 
 class Entity : public Cell {
 public:
-    Entity(int x, int y, char ch, int id)
-        : Cell(x, y, ch), id(id) {
+    Entity(int x, int y, char ch, int id, int color)
+        : Cell(x, y, ch), id(id), color(color), isAnimated(false), isWalkable(false) {
     }
 
+    virtual ~Entity() = default;
+
+    int getColor() const { return color; }
     int getId() const { return id; }
+    bool getIsAnimated() const { return isAnimated; }
+    bool getIsWalkable() const { return isWalkable; }
+
+    virtual void update() {}
+    virtual void onPlayerInteraction() {}
 
 protected:
+    int color;
     int id;
+    bool isAnimated;
+    bool isWalkable;
 };
 
 
