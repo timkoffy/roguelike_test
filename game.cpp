@@ -4,9 +4,9 @@
 #include <thread>
 
 namespace Game {
-    char buf[ROWS][COLS];
-    int colorLayer[ROWS][COLS];
-    int isItalicLayer[ROWS][COLS]{false};
+    std::array<std::array<char, COLS>, ROWS> buf;
+    std::array<std::array<int, COLS>, ROWS> colorLayer;
+    std::array<std::array<bool, COLS>, ROWS> isItalicLayer {false};
     int playerX = 0;
     int playerY = 0;
     int direction = 0;
@@ -57,7 +57,7 @@ namespace Game {
     // data managing
     void readFromFile() {
         FILE* f = fopen("data.dat", "rb");
-        fread(buf, 1, ROWS * COLS, f);
+        fread(&buf, 1, ROWS * COLS, f);
         fread(&playerX, sizeof(int), 1, f);
         fread(&playerY, sizeof(int), 1, f);
         fread(&direction, sizeof(int), 1, f);
@@ -66,7 +66,7 @@ namespace Game {
 
     void saveToFile() {
         FILE* f = fopen("data.dat", "wb");
-        fwrite(buf, 1, ROWS * COLS, f);
+        fwrite(&buf, 1, ROWS * COLS, f);
         fwrite(&playerX, sizeof(int), 1, f);
         fwrite(&playerY, sizeof(int), 1, f);
         fwrite(&direction, sizeof(int), 1, f);

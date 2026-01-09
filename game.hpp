@@ -27,9 +27,9 @@ namespace Game {
         RIGHT
     };
 
-    extern char buf[ROWS][COLS];
-    extern int colorLayer[ROWS][COLS];
-    extern int isItalicLayer[ROWS][COLS];
+    extern std::array<std::array<char, COLS>, ROWS> buf;
+    extern std::array<std::array<int, COLS>, ROWS> colorLayer;
+    extern std::array<std::array<bool, COLS>, ROWS> isItalicLayer;
     extern int playerX;
     extern int playerY;
     extern int direction;
