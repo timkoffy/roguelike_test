@@ -15,14 +15,8 @@ namespace Game {
 
     void runTime(int rows, int cols) {
         std::cout << "\033[2J\033[1;1H" << "press any key...";
-        readFromFile();
 
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLS; j++) {
-                colorLayer[i][j] = Colors::FIELD_COLOR;
-            }
-        }
-        wallShader();
+        readFromFile();
         lightShader();
 
         // game loop
@@ -34,9 +28,12 @@ namespace Game {
                     case 'a': case 'h': move(LEFT); break;
                     case 's': case 'j': move(DOWN); break;
                     case 'd': case 'l': move(RIGHT); break;
-                    case 'f': placeBlockInFrontOfPlayer(); break;
+                    case 'q': rotateDirection(false); break;
+                    case 'e': rotateDirection(true); break;
+                    case 'f': placeBlockInFrontOfPlayer('@'); break;
+                    case 'r': placeBlockInFrontOfPlayer('$'); break;
                     case 'c': destroyBlockInFrontOfPlayer(); break;
-                    case 'q': std::cout << "\033[2J\033[1;1H"; return;
+                    case 'z': std::cout << "\033[2J\033[1;1H"; return;
                     default: break;
                 }
             }
@@ -129,14 +126,23 @@ namespace Game {
         saveToFile();
     }
 
-    void placeBlockInFrontOfPlayer() {
+    void rotateDirection(bool isClockwise) {
+        if (isClockwise) {
+            direction = (4 + direction - 1) % 4;
+            return;
+        }
+        direction = (direction + 1) % 4;
+    }
+
+
+    void placeBlockInFrontOfPlayer(char block) {
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
         int x = newCoords.first, y = newCoords.second;
 
         if (buf[y][x] != '.')
             return;
 
-        editByteInFile(x, y, '@');
+        editByteInFile(x, y, block);
         colorLayer[y][x] = Colors::WALL_COLOR;
         lightShader();
     }
@@ -145,8 +151,8 @@ namespace Game {
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
         int x = newCoords.first, y = newCoords.second;
 
-        if (buf[y][x] != '@')
-            return;
+        // if (buf[y][x] != '@')
+        //     return;
 
         editByteInFile(x, y, '.');
         colorLayer[y][x] = Colors::FIELD_COLOR;

@@ -30,6 +30,11 @@ namespace Game {
                     std::cout << '&' << ' ';
                     continue;
                 }
+                const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
+                if (j == directionPointer.first && i == directionPointer.second) {
+                    std::cout << "\033[38;5;" << Colors::DIRECTION_POINTER_COLOR << "m" << buf[i][j] << "\033[0m" << ' ';
+                    continue;
+                }
                 int color = colorLayer[i][j];
                 std::cout << "\033[38;5;" << color << "m" << buf[i][j] << "\033[0m" << ' ';
             } std::cout << '\n';
@@ -55,6 +60,14 @@ namespace Game {
         *topViewportYPtr = topViewportY;
     }
 
+    void resetShader() {
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLS; j++) {
+                colorLayer[i][j] = Colors::FIELD_COLOR;
+            }
+        }
+    }
+
     // shader for walls
     void wallShader() {
         for (int i = 0; i < ROWS; i++) {
@@ -68,6 +81,9 @@ namespace Game {
 
     // shader for light
     void lightShader() {
+        resetShader();
+        wallShader();
+
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLS; j++) {
                 if (buf[i][j] == '$') {
@@ -75,18 +91,25 @@ namespace Game {
                         int row = i - 2 + (k - k%5) / 5,
                             col = j - 2 + k % 5;
                         if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-                            colorLayer[row][col] = Colors::LIGHT_FAR_COLOR;
-                            if (buf[row][col] != '.')
-                                colorLayer[row][col] = Colors::WALL_LIGHT_FAR_COLOR;
+                            if (buf[row][col] == '$') continue;
+                            if (buf[row][col] != '.') {
+                                if (colorLayer[row][col] != Colors::WALL_LIGHT_NEAR_COLOR)
+                                    colorLayer[row][col] = Colors::WALL_LIGHT_FAR_COLOR;
+                                continue;
+                            }
+                            if (colorLayer[row][col] != Colors::LIGHT_NEAR_COLOR)
+                                colorLayer[row][col] = Colors::LIGHT_FAR_COLOR;
                         }
                     }
                     for (int k = 0; k < 9; k++) {
                         int row = i - 1 + (k - k%3) / 3,
                             col = j - 1 + k % 3;
                         if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-                            colorLayer[row][col] = Colors::LIGHT_NEAR_COLOR;
-                            if (buf[row][col] != '.')
+                            if (buf[row][col] == '$') continue;
+                            if (buf[row][col] != '.') {
                                 colorLayer[row][col] = Colors::WALL_LIGHT_NEAR_COLOR;
+                                continue;
+                            } colorLayer[row][col] = Colors::LIGHT_NEAR_COLOR;
                         }
                     }
                     colorLayer[i][j] = Colors::LIGHT_SOURCE_COLOR;
