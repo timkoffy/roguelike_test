@@ -45,8 +45,9 @@ namespace Game {
                     case 'f': placeBlockInFrontOfPlayer('@'); break;
                     case 'r': placeBlockInFrontOfPlayer('$'); break;
                     case 't': placeBlockInFrontOfPlayer('D'); break;
+                    case 'v': entities.push_back(std::make_unique<Entities::Orc>(playerX, playerY));
                     case 'c': destroyBlockInFrontOfPlayer(); break;
-                    case 'z': std::cout << "\033[2J\033[1;1H"; return;
+                    case 'z': saveToFile(); std::cout << "\033[2J\033[1;1Hsuccessfully exit!\n"; return;
                     default: break;
                 }
             }
@@ -160,52 +161,14 @@ namespace Game {
         saveToFile();
     }
 
-    // help function
-    std::pair<int, int> getCoordinatesInDirection(std::pair<int, int> point, int dir) {
-        int x = point.first,
-            y = point.second;
-
-        switch (dir) {
-            case 0: y--; break;
-            case 1: x--; break;
-            case 2: y++; break;
-            case 3: x++; break;
-            default: break;
-        }
-
-        if (x < 0 || x >= COLS || y < 0 || y >= ROWS)
-            return {point.first, point.second};
-        return {x, y};
-    }
-
     void move(int dir) {
         direction = dir;
-
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, dir);
-        int x = newCoords.first, y = newCoords.second;
 
-        bool canMove = true;
-        for (const auto& entity : entities) {
-            if (x == entity->getX() && y == entity->getY()) {
-                if (entity->getIsSolid())
-                    canMove = false;
-                entity->onPlayerInteraction();
-                lightShader();
-                break;
-            }
+        if (!isBlockSolidPlayer(newCoords)) {
+            playerX = newCoords.first;
+            playerY = newCoords.second;
         }
-
-        char ch = baseLayer.at(y).at(x).getChar();
-        if (ch != '.' && ch != 'D') {
-            return;
-        }
-
-        if (canMove) {
-            playerX = x;
-            playerY = y;
-        }
-
-        saveToFile(); // soon: save only on exit
     }
 
     void rotateDirection(bool isClockwise) {
@@ -214,7 +177,6 @@ namespace Game {
             return;
         } direction = (direction + 1) % 4;
     }
-
 
     void placeBlockInFrontOfPlayer(char block) {
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
@@ -235,5 +197,51 @@ namespace Game {
         editByteInFile(x, y, '.');
         colorLayer.at(y).at(x) = Colors::FIELD_COLOR;
         lightShader();
+    }
+
+    // helper functions
+    std::pair<int, int> getCoordinatesInDirection(std::pair<int, int> point, int dir) {
+        int x = point.first,
+            y = point.second;
+
+        switch (dir) {
+            case 0: y--; break;
+            case 1: x--; break;
+            case 2: y++; break;
+            case 3: x++; break;
+            default: break;
+        }
+
+        if (x < 0 || x >= COLS || y < 0 || y >= ROWS)
+            return {point.first, point.second};
+        return {x, y};
+    }
+
+    bool isBlockSolid(std::pair<int, int> point, Entity* thisEntity) {
+        char ch = baseLayer.at(point.second).at(point.first).getChar();
+        if (ch != '.' || (playerX == point.first && playerY == point.second))
+            return true;
+
+        for (const auto& entity : entities) {
+            if (entity.get() == thisEntity) continue;
+
+            if (point.first == entity->getX() && point.second == entity->getY())
+                return true;
+        } return false;
+    }
+
+    bool isBlockSolidPlayer(std::pair<int, int> point) {
+        char ch = baseLayer.at(point.second).at(point.first).getChar();
+        if (ch != '.' && ch != 'D')
+            return true;
+
+        for (const auto& entity : entities) {
+            if (point.first == entity->getX() && point.second == entity->getY()) {
+                entity->onPlayerInteraction();
+                lightShader();
+                if (entity->getIsSolid())
+                    return true;
+            }
+        } return false;
     }
 }

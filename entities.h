@@ -27,29 +27,15 @@ namespace Entities {
                 setChar(frames[lastFrame]);
             }
 
-            srand(x*y + time(nullptr));
-            if (lastMovingTick + (rand() % 200 + 200) <= Game::ticks) {
-                lastMovingTick = Game::ticks;
-                const auto newCoords = Game::getCoordinatesInDirection({x, y}, rand() % 4);
-
-                char ch = Game::baseLayer.at(newCoords.second).at(newCoords.first).getChar();
-                if (ch != '.' || (Game::playerX == newCoords.first && Game::playerY == newCoords.second) ) {
-                    return;
-                }
-
-                bool canMove = true;
-                for (const auto& entity : Game::entities) {
-                    if (entity.get() == this) continue;
-
-                    if (newCoords.first == entity->getX() && newCoords.second == entity->getY()) {
-                        canMove = false;
-                        break;
+                srand(x*y + time(nullptr));
+                if (lastMovingTick + (rand() % 200 + 200) <= Game::ticks) {
+                    lastMovingTick = Game::ticks;
+                    const auto newCoords = Game::getCoordinatesInDirection({x, y}, rand() % 4);
+                    if (!Game::isBlockSolid(newCoords, this)) {
+                        x = newCoords.first;
+                        y = newCoords.second;
                     }
-                } if (canMove) {
-                    x = newCoords.first;
-                    y = newCoords.second;
                 }
-            }
         }
 
         void onPlayerInteraction() override {

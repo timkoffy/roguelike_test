@@ -5,10 +5,10 @@
 #include "entity.h"
 
 namespace Game {
-    constexpr int ROWS = 50;
-    constexpr int COLS = 50;
+    constexpr int ROWS = 100;
+    constexpr int COLS = 100;
     constexpr int VIEWPORT_ROWS = 11;
-    constexpr int VIEWPORT_COLS = 19;
+    constexpr int VIEWPORT_COLS = 21;
     constexpr auto FRAME_TIME = std::chrono::milliseconds(16);
 
     namespace Colors {
@@ -60,12 +60,12 @@ namespace Game {
     // rendering functions
     void drawField(int rows, int cols);
     void updateViewportCenterCoordinates(int* leftViewportXPtr, int* topViewportYPtr);
-    void resetShader();
-    void wallShader();
     void lightShader();
     void updateAnimations();
     void updateEntityLayer();
 
-    // side functions
+    // helper functions
     std::pair<int, int> getCoordinatesInDirection(std::pair<int, int> point, int dir);
+    bool isBlockSolid(std::pair<int, int> point, Entity* thisEntity);
+    bool isBlockSolidPlayer(std::pair<int, int> point);
 }
