@@ -36,6 +36,10 @@ namespace Game {
                     continue;
                 }
                 int color = colorLayer[i][j];
+                if (isItalicLayer[i][j]) {
+                    std::cout << "\033[3m\033[38;5;" << color << "m" << buf[i][j] << "\033[0m\033[23m" << ' ';
+                    continue;
+                }
                 std::cout << "\033[38;5;" << color << "m" << buf[i][j] << "\033[0m" << ' ';
             } std::cout << '\n';
         }
@@ -113,6 +117,21 @@ namespace Game {
                         }
                     }
                     colorLayer[i][j] = Colors::LIGHT_SOURCE_COLOR;
+                }
+            }
+        }
+    }
+
+    void updateAnimations() {
+        if (lastTick + 50 == ticks) {
+            lastTick = ticks;
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    if (buf[i][j] == '$') {
+                        isItalicLayer[i][j] = !isItalicLayer[i][j];
+                        continue;
+                    }
+                    isItalicLayer[i][j] = false;
                 }
             }
         }

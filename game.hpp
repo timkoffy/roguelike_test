@@ -29,10 +29,12 @@ namespace Game {
 
     extern char buf[ROWS][COLS];
     extern int colorLayer[ROWS][COLS];
+    extern int isItalicLayer[ROWS][COLS];
     extern int playerX;
     extern int playerY;
     extern int direction;
     extern int ticks;
+    extern int lastTick;
     extern int viewportCenterX;
     extern int viewportCenterY;
 
@@ -53,6 +55,7 @@ namespace Game {
     void resetShader();
     void wallShader();
     void lightShader();
+    void updateAnimations();
 
     // side functions
     std::pair<int, int> getCoordinatesInDirection(std::pair<int, int> point, int dir);

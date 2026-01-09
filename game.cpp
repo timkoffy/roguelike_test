@@ -6,10 +6,12 @@
 namespace Game {
     char buf[ROWS][COLS];
     int colorLayer[ROWS][COLS];
+    int isItalicLayer[ROWS][COLS]{false};
     int playerX = 0;
     int playerY = 0;
     int direction = 0;
     int ticks = 0;
+    int lastTick = 0;
     int viewportCenterX = 0;
     int viewportCenterY = 0;
 
@@ -39,6 +41,8 @@ namespace Game {
             }
 
             ticks++;
+
+            updateAnimations();
 
             // sync fps to 60
             const auto start = std::chrono::high_resolution_clock::now();
