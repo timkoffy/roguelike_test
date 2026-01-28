@@ -3,19 +3,19 @@
 
 class Cell {
 public:
-    Cell() : x(0), y(0), ch(' ') {}
+    Cell() : xChunk(0), yChunk(0), ch(' ') {}
 
-    Cell(int x, int y, char ch) : x(x), y(y), ch(ch) {}
+    Cell(int x, int y, char ch) : xChunk(x), yChunk(y), ch(ch) {}
 
     virtual ~Cell() {}
 
-    int getX() const { return x; }
-    int getY() const { return y; }
+    int getX() const { return xChunk; }
+    int getY() const { return yChunk; }
     char getChar() const { return ch; }
 
     void setPosition(int newX, int newY) {
-        x = newX;
-        y = newY;
+        xChunk = newX;
+        yChunk = newY;
     }
 
     void setChar(char newChar) {
@@ -23,8 +23,8 @@ public:
     }
 
 protected:
-    int x;
-    int y;
+    int xChunk;
+    int yChunk;
     char ch;
 };
 

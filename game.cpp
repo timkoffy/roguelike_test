@@ -21,6 +21,9 @@ namespace Game {
     int ticks = 0;
     int lastTick = 0;
 
+    std::vector<Cell> chunkData;
+    int chunkCount = 0;
+
     void runTime(int rows, int cols) {
         std::cout << "\033[2J\033[1;1H" << "press any key...";
 
@@ -69,7 +72,16 @@ namespace Game {
     void readFromFile() {
         FILE* f = fopen("data.dat", "rb");
 
+        // deserialize chunk data
+        fread(&chunkCount, sizeof(int), 1, f);
+        for (int i = 0; i < chunkCount; i++) {
+
+        }
+
         // deserialize field data
+        fread(&chunkCount, sizeof(int), 1, f);
+
+
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
                 char ch;
@@ -77,6 +89,7 @@ namespace Game {
                 baseLayer.at(y).at(x) = Cell(x, y, ch);
             }
         }
+
 
         // deserialize player data
         fread(&playerX, sizeof(int), 1, f);

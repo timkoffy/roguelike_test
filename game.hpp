@@ -57,6 +57,9 @@ namespace Game {
     void placeBlockInFrontOfPlayer(char block);
     void destroyBlockInFrontOfPlayer();
 
+    // chunk managing
+    void loadChunks();
+
     // rendering functions
     void drawField(int rows, int cols);
     void updateViewportCenterCoordinates(int* leftViewportXPtr, int* topViewportYPtr);
