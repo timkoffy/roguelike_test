@@ -1,3 +1,3 @@
 # Terminal Roguelike
 
-<img width="1140" height="664" alt="image" src="https://github.com/user-attachments/assets/9fa854c6-b781-466b-80ff-53321f8c0d15" />
+![IMG_6490](https://github.com/user-attachments/assets/95135c15-d191-4aff-b715-d78044fba4f9)
