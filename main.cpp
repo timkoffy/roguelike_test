@@ -15,5 +15,5 @@ int main() {
 
     Game::createInitialField();
 
-    Game::runTime(w.ws_row, w.ws_col);
+    // Game::runTime(w.ws_row, w.ws_col);
 }

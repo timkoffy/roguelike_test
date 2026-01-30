@@ -27,26 +27,26 @@ namespace Entities {
                 setChar(frames[lastFrame]);
             }
 
-                srand(x*yChunk + time(nullptr));
+                srand(x*y + time(nullptr));
                 if (lastMovingTick + (rand() % 200 + 200) <= Game::ticks) {
                     lastMovingTick = Game::ticks;
-                    const auto newCoords = Game::getCoordinatesInDirection({x, yChunk}, rand() % 4);
+                    const auto newCoords = Game::getCoordinatesInDirection({x, y}, rand() % 4);
                     if (!Game::isBlockSolid(newCoords, this)) {
                         x = newCoords.first;
-                        yChunk = newCoords.second;
+                        y = newCoords.second;
                     }
                 }
         }
 
         void onPlayerInteraction() override {
             // orc have been pushed by player
-            const auto newCoords = Game::getCoordinatesInDirection({x, yChunk}, Game::direction);
+            const auto newCoords = Game::getCoordinatesInDirection({x, y}, Game::direction);
             char ch = Game::baseLayer.at(newCoords.second).at(newCoords.first).getChar();
             if (ch != '.' && ch != 'D') {
                 return;
             }
             x = newCoords.first;
-            yChunk = newCoords.second;
+            y = newCoords.second;
         }
 
     private:

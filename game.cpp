@@ -1,6 +1,7 @@
 #include "game.hpp"
 #include <chrono>
 #include <iostream>
+#include <math.h>
 #include <thread>
 
 #include "cell.h"
@@ -21,6 +22,7 @@ namespace Game {
     int ticks = 0;
     int lastTick = 0;
 
+    std::vector<int> chunkIndexes;
     std::vector<Cell> chunkData;
     int chunkCount = 0;
 
@@ -73,15 +75,13 @@ namespace Game {
         FILE* f = fopen("data.dat", "rb");
 
         // deserialize chunk data
-        fread(&chunkCount, sizeof(int), 1, f);
-        for (int i = 0; i < chunkCount; i++) {
+        // fread(&chunkCount, sizeof(int), 1, f);
+        // fread(chunkIndexes.data(), sizeof(int), chunkCount, f);
 
-        }
+        // for (int i = 0; i < chunkCount; i++) {
+        // }
 
         // deserialize field data
-        fread(&chunkCount, sizeof(int), 1, f);
-
-
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
                 char ch;
@@ -153,20 +153,76 @@ namespace Game {
         FILE* f = fopen("data.dat", "rb+");
         fseek(f, y * COLS + x, SEEK_SET);
         fwrite(&ch, 1, 1, f);
-        baseLayer.at(y).at(x).setChar(ch);
+        baseLayer.at(y ).at(x).setChar(ch);
         fclose(f);
     }
 
     // reset all data
     void createInitialField() {
+        srand(123);
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
-                baseLayer.at(y).at(x).setChar('.');
+                if (rand() % 100 == rand() % 100) {
+                    baseLayer.at(y).at(x).setChar('/');
+                    continue;
+                } baseLayer.at(y).at(x).setChar('@');
             }
         }
 
-        baseLayer.at(8).at(17).setChar('$');
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
+                if (baseLayer.at(y).at(x).getChar() == '/') {
+                    int offset = rand() % 10 + 3;
+                    for (int xSub = x - offset; xSub < x + offset; xSub++) {
+                        if (xSub < 0 || xSub >= COLS)
+                            continue;
+
+                        int ySub = sqrt((offset - 1) * (offset - 1) - (xSub - x) * (xSub - x)) + y;
+
+                        if (ySub < 0 || ySub >= ROWS)
+                            continue;
+
+                        baseLayer.at(ySub).at(xSub).setChar('.');
+                        for (int yFill = ySub - 1; yFill > y; yFill--) {
+                            baseLayer.at(yFill).at(xSub).setChar('.');
+                        }
+
+                        ySub = -sqrt((offset - 1) * (offset - 1) - (xSub - x) * (xSub - x)) + y;
+
+                        if (ySub < 0 || ySub >= ROWS)
+                            continue;
+
+                        baseLayer.at(ySub).at(xSub).setChar('.');
+                        for (int yFill = ySub; yFill <= y; yFill++) {
+                            baseLayer.at(yFill).at(xSub).setChar('.');
+                        }
+                    }
+                }
+            }
+        }
+
+        // for (int y = 1; y < ROWS - 1; y++) {
+        //     for (int x = 1; x < COLS - 1; x++) {
+        //         if ((baseLayer.at(y).at(x).getChar() != baseLayer.at(y-1).at(x).getChar() &&
+        //             baseLayer.at(y).at(x).getChar() != baseLayer.at(y+1).at(x).getChar()) ||
+        //             (baseLayer.at(y).at(x).getChar() != baseLayer.at(y).at(x-1).getChar() &&
+        //             baseLayer.at(y).at(x).getChar() != baseLayer.at(y).at(x+1).getChar())) {
+        //             if (baseLayer.at(y).at(x).getChar() == '.')
+        //                 baseLayer.at(y).at(x).setChar('@');
+        //             else baseLayer.at(y).at(x).setChar('.');
+        //             x++;
+        //         }
+        //     }
+        // }
+
+        baseLayer.at(8).at(2).setChar('$');
         baseLayer.at(3).at(5).setChar('$');
+
+        for (int y = 0; y < ROWS; y++) {
+            for (int x = 0; x < COLS; x++) {
+                std::cout << baseLayer.at(y).at(x).getChar() << ' ';
+            } std::cout << '\n';
+        }
 
         playerX = 0;
         playerY = 0;

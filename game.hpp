@@ -5,8 +5,8 @@
 #include "entity.h"
 
 namespace Game {
-    constexpr int ROWS = 100;
-    constexpr int COLS = 100;
+    constexpr int ROWS = 90;
+    constexpr int COLS = 90;
     constexpr int VIEWPORT_ROWS = 11;
     constexpr int VIEWPORT_COLS = 21;
     constexpr auto FRAME_TIME = std::chrono::milliseconds(16);

@@ -10,7 +10,4 @@ add_executable(roguelike_test main.cpp
         cell.h
         entity.h
         entities.h
-        chunkManager.cpp
-        chunkManager.h
-        chunk.cpp
         chunk.h)
