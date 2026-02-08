@@ -136,34 +136,92 @@ namespace Game {
                 for (int x = 0; x < CHUNK_SIZE; x++) {
                     if (chunk.second.getCell(x, y)->getChar() == '$') {
                         for (int k = 0; k < 25; k++) {
-                            int topLightFarY = y - 2 + (k - k%5) / 5,
-                                leftLightFarX = x - 2 + k % 5;
-                            if (true) {
-                                Cell* c = chunk.second.getCell(leftLightFarX, topLightFarY);
-                                char ch = c->getChar();
-                                if (ch == '$') continue;
-                                if (ch != '.') {
-                                    if (c->getColor() != Colors::WALL_LIGHT_NEAR_COLOR)
-                                        c->setColor(Colors::WALL_LIGHT_FAR_COLOR);
-                                    continue;
+                            int lightFarY = y - 2 + (k - k%5) / 5,
+                                lightFarX = x - 2 + k % 5;
+                            Cell* c;
+                            int chunkX = chunk.second.getX();
+                            int chunkY = chunk.second.getY();
+                            // std::cerr << "1) x: " << chunkX << " y: " << chunkY << " x1: " << lightFarX << " y1: " << lightFarY << std::endl;
+
+                            try {
+                                c = chunk.second.getCell(lightFarX, lightFarY);
+                            } catch (std::out_of_range) {
+                                if (lightFarX < 0) {
+                                    lightFarX = CHUNK_SIZE + lightFarX;
+                                    chunkX--;
                                 }
-                                if (c->getColor() != Colors::LIGHT_NEAR_COLOR)
-                                    c->setColor(Colors::LIGHT_FAR_COLOR);
+                                else if (lightFarX >= CHUNK_SIZE) {
+                                    lightFarX = lightFarX % CHUNK_SIZE;
+                                    chunkX++;
+                                }
+
+                                if (lightFarY < 0) {
+                                    lightFarY = CHUNK_SIZE + lightFarY;
+                                    chunkY--;
+                                }
+                                else if (lightFarY >= CHUNK_SIZE) {
+                                    lightFarY = lightFarY % CHUNK_SIZE;
+                                    chunkY++;
+                                }
+
+                                if (buf.find({chunkX, chunkY}) != buf.end()) {
+                                    // std::cerr << "2) x: " << chunkX << " y: " << chunkY << " x1: " << lightFarX << " y1: " << lightFarY << std::endl;
+                                    c = buf[{chunkX, chunkY}].getCell(lightFarX, lightFarY);
+                                } else continue;
                             }
+                            char ch = c->getChar();
+                            if (ch == '$') continue;
+                            if (ch != '.') {
+                                if (c->getColor() != Colors::WALL_LIGHT_NEAR_COLOR)
+                                    c->setColor(Colors::WALL_LIGHT_FAR_COLOR);
+                                continue;
+                            }
+                            if (c->getColor() != Colors::LIGHT_NEAR_COLOR)
+                                c->setColor(Colors::LIGHT_FAR_COLOR);
                         }
+
                         for (int k = 0; k < 9; k++) {
-                            int topLightNearY = y - 1 + (k - k%3) / 3,
-                                leftLightNearX = x - 1 + k % 3;
-                            if (true) {
-                                Cell* c = chunk.second.getCell(leftLightNearX, topLightNearY);
-                                char ch = c->getChar();
-                                if (ch == '$') continue;
-                                if (ch != '.') {
-                                    c->setColor(Colors::WALL_LIGHT_NEAR_COLOR);
-                                    continue;
-                                } c->setColor(Colors::LIGHT_NEAR_COLOR);
+                            int lightNearY = y - 1 + (k - k%3) / 3,
+                                lightNearX = x - 1 + k % 3;
+                            int chunkX = chunk.second.getX();
+                            int chunkY = chunk.second.getY();
+                            Cell* c;
+                            // std::cerr << "3) x: " << chunkX << " y: " << chunkY << " x1: " << lightNearX << " y1: " << lightNearY << std::endl;
+                            try {
+                                c = chunk.second.getCell(lightNearX, lightNearY);
+                            } catch (std::out_of_range) {
+
+                                if (lightNearX < 0) {
+                                    lightNearX = CHUNK_SIZE + lightNearX;
+                                    chunkX--;
+                                }
+                                else if (lightNearX >= CHUNK_SIZE) {
+                                    lightNearX = lightNearX % CHUNK_SIZE;
+                                    chunkX++;
+                                }
+
+                                if (lightNearY < 0) {
+                                    lightNearY = CHUNK_SIZE + lightNearY;
+                                    chunkY--;
+                                }
+                                else if (lightNearY >= CHUNK_SIZE) {
+                                    lightNearY = lightNearY % CHUNK_SIZE;
+                                    chunkY++;
+                                }
+
+                                if (buf.find({chunkX, chunkY}) != buf.end()) {
+                                    // std::cerr << "4) x: " << chunkX << " y: " << chunkY << " x1: " << lightNearX << " y1: " << lightNearY << std::endl;
+                                    c = buf[{chunkX, chunkY}].getCell(lightNearX, lightNearY);
+                                } else continue;
                             }
+                            char ch = c->getChar();
+                            if (ch == '$') continue;
+                            if (ch != '.') {
+                                c->setColor(Colors::WALL_LIGHT_NEAR_COLOR);
+                                continue;
+                            } c->setColor(Colors::LIGHT_NEAR_COLOR);
                         }
+
                         chunk.second.getCell(x, y)->setColor(Colors::LIGHT_SOURCE_COLOR);
                     }
                 }

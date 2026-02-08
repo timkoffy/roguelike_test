@@ -257,9 +257,9 @@ namespace Game {
         createChunk(0, 0);
         createChunk(1, 0);
 
-        Cell c(2, 3, '$');
-        buf[{0, 0}].setCell(c);
-        Cell c1(5, 2, '$');
+        // Cell c(0, 3, '$');
+        // buf[{0, 0}].setCell(c);
+        Cell c1(15, 2, '$');
         buf[{0, 0}].setCell(c1);
 
         playerX = 0;
