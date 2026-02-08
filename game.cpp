@@ -68,7 +68,6 @@ namespace Game {
 
             ticks++;
             // updateAnimations();
-            lightShader();
 
             // sync fps to 60
             const auto start = std::chrono::high_resolution_clock::now();
@@ -82,81 +81,81 @@ namespace Game {
 
     // data managing
     void readFromFile() {
-        FILE* f = fopen("data.dat", "rb");
-
-        // deserialize chunk data
-        // fread(&chunkCount, sizeof(int), 1, f);
-        // fread(chunkIndexes.data(), sizeof(int), chunkCount, f);
-
-        // for (int i = 0; i < chunkCount; i++) {
+        // FILE* f = fopen("data.dat", "rb");
+        //
+        // // deserialize chunk data
+        // // fread(&chunkCount, sizeof(int), 1, f);
+        // // fread(chunkIndexes.data(), sizeof(int), chunkCount, f);
+        //
+        // // for (int i = 0; i < chunkCount; i++) {
+        // // }
+        //
+        // // deserialize field data
+        // for (int y = 0; y < ROWS; y++) {
+        //     for (int x = 0; x < COLS; x++) {
+        //         char ch;
+        //         fread(&ch, 1, 1, f);
+        //         baseLayer.at(y).at(x) = Cell(x, y, ch, 0);
+        //     }
         // }
-
-        // deserialize field data
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
-                char ch;
-                fread(&ch, 1, 1, f);
-                baseLayer.at(y).at(x) = Cell(x, y, ch, 0);
-            }
-        }
-
-
-        // deserialize player data
-        fread(&playerX, sizeof(int), 1, f);
-        fread(&playerY, sizeof(int), 1, f);
-        fread(&direction, sizeof(int), 1, f);
-
-        // deserialize entities
-        int entityId, entityX, entityY;
-        while (fread(&entityId, sizeof(int), 1, f) == 1) {
-            if (entityId == -1) break;
-            fread(&entityX, sizeof(int), 1, f);
-            fread(&entityY, sizeof(int), 1, f);
-            // entities.emplace_back();
-        }
-
-        fclose(f);
+        //
+        //
+        // // deserialize player data
+        // fread(&playerX, sizeof(int), 1, f);
+        // fread(&playerY, sizeof(int), 1, f);
+        // fread(&direction, sizeof(int), 1, f);
+        //
+        // // deserialize entities
+        // int entityId, entityX, entityY;
+        // while (fread(&entityId, sizeof(int), 1, f) == 1) {
+        //     if (entityId == -1) break;
+        //     fread(&entityX, sizeof(int), 1, f);
+        //     fread(&entityY, sizeof(int), 1, f);
+        //     // entities.emplace_back();
+        // }
+        //
+        // fclose(f);
     }
 
     void saveToFile() {
-        FILE* f = fopen("data.dat", "wb");
-
-        // serialize field data
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
-                char ch = baseLayer.at(y).at(x).getChar();
-                fwrite(&ch, 1, 1, f);
-            }
-        }
-
-        // serialize player data
-        fwrite(&playerX, sizeof(int), 1, f);
-        fwrite(&playerY, sizeof(int), 1, f);
-        fwrite(&direction, sizeof(int), 1, f);
-
-        // serialize entities
-        int entityId, entityX, entityY;
-
-        // if (entities.empty()) {
-        //     entityId = -1;
-        //     fwrite(&entityId, sizeof(int), 1, f);
-        //     fclose(f);
-        //     return;
+        // FILE* f = fopen("data.dat", "wb");
+        //
+        // // serialize field data
+        // for (int y = 0; y < ROWS; y++) {
+        //     for (int x = 0; x < COLS; x++) {
+        //         char ch = baseLayer.at(y).at(x).getChar();
+        //         fwrite(&ch, 1, 1, f);
+        //     }
         // }
         //
-        // for (const auto& entity : entities) {
-        //     entityId = entity.getId();
-        //     entityX = entity.getX();
-        //     entityY = entity.getY();
+        // // serialize player data
+        // fwrite(&playerX, sizeof(int), 1, f);
+        // fwrite(&playerY, sizeof(int), 1, f);
+        // fwrite(&direction, sizeof(int), 1, f);
         //
-        //     fwrite(&entityId, sizeof(int), 1, f);
-        //     fwrite(&entityX, sizeof(int), 1, f);
-        //     fwrite(&entityY, sizeof(int), 1, f);
-        // }
-
-        entityId = -1;
-        fwrite(&entityId, sizeof(int), 1, f);
-        fclose(f);
+        // // serialize entities
+        // int entityId, entityX, entityY;
+        //
+        // // if (entities.empty()) {
+        // //     entityId = -1;
+        // //     fwrite(&entityId, sizeof(int), 1, f);
+        // //     fclose(f);
+        // //     return;
+        // // }
+        // //
+        // // for (const auto& entity : entities) {
+        // //     entityId = entity.getId();
+        // //     entityX = entity.getX();
+        // //     entityY = entity.getY();
+        // //
+        // //     fwrite(&entityId, sizeof(int), 1, f);
+        // //     fwrite(&entityX, sizeof(int), 1, f);
+        // //     fwrite(&entityY, sizeof(int), 1, f);
+        // // }
+        //
+        // entityId = -1;
+        // fwrite(&entityId, sizeof(int), 1, f);
+        // fclose(f);
     }
 
     void editByteInFile(int x, int y, char ch) {
@@ -257,8 +256,8 @@ namespace Game {
         createChunk(0, 0);
         createChunk(1, 0);
 
-        // Cell c(0, 3, '$');
-        // buf[{0, 0}].setCell(c);
+        Cell c(0, 3, '$');
+        buf[{0, 0}].setCell(c);
         Cell c1(15, 2, '$');
         buf[{0, 0}].setCell(c1);
 
@@ -336,6 +335,19 @@ namespace Game {
         return {x, y};
     }
 
+    std::pair<int, int> getChunkCoords(std::pair<int, int> point) {
+        int x = point.first;
+        int y = point.second;
+
+        int chunkX = x / CHUNK_SIZE;
+        if (x < 0) chunkX--;
+
+        int chunkY = y / CHUNK_SIZE;
+        if (y < 0) chunkY--;
+
+        return {chunkX, chunkY};
+    }
+
     bool isBlockSolid(std::pair<int, int> point, Entity* thisEntity) {
         char ch = baseLayer.at(point.second).at(point.first).getChar();
         if (ch != '.' || (playerX == point.first && playerY == point.second))
@@ -350,18 +362,27 @@ namespace Game {
     }
 
     bool isBlockSolidPlayer(std::pair<int, int> point) {
-        // char ch = baseLayer.at(point.second).at(point.first).getChar();
-        // if (ch != '.' && ch != 'D')
-        //     return true;
-        //
-        // for (const auto& entity : entities) {
-        //     if (point.first == entity->getX() && point.second == entity->getY()) {
-        //         entity->onPlayerInteraction();
-        //         lightShader();
-        //         if (entity->getIsSolid())
-        //             return true;
-        //     }
-        // } return false;
-        return false;
+        int x = point.first;
+        int y = point.second;
+
+        auto chunkCoords = getChunkCoords(point);
+        int chunkX = chunkCoords.first;
+        int chunkY = chunkCoords.second;
+
+        char ch;
+        if (buf.find({chunkX, chunkY}) != buf.end()) {
+            ch = buf[{chunkX, chunkY}].getCell(x % CHUNK_SIZE, y % CHUNK_SIZE)->getChar();
+        } else ch = ' ';
+
+        if (ch != '.' && ch != 'D' && ch != ' ')
+            return true;
+
+        for (const auto& entity : entities) {
+            if (x == entity->getChunkX() && y == entity->getChunkY()) {
+                entity->onPlayerInteraction();
+                if (entity->getIsSolid())
+                    return true;
+            }
+        } return false;
     }
 }

@@ -38,13 +38,9 @@ namespace Game {
                 std::cout << ' ';
             // paste buffer
             for (int x = leftViewportX; x < rightViewportX; x++) {
-
-                int chunkX = x / CHUNK_SIZE;
-                if (x < 0) chunkX--;
-
-                int chunkY = y / CHUNK_SIZE;
-                if (y < 0) chunkY--;
-
+                auto chunkCoords = getChunkCoords({x, y});
+                int chunkX = chunkCoords.first;
+                int chunkY = chunkCoords.second;
                 char displayedChar;
                 int color;
 
@@ -130,45 +126,28 @@ namespace Game {
     void lightShader() {
         resetShader();
         wallShader();
-
         for (auto& chunk : buf) {
             for (int y = 0; y < CHUNK_SIZE; y++) {
                 for (int x = 0; x < CHUNK_SIZE; x++) {
                     if (chunk.second.getCell(x, y)->getChar() == '$') {
                         for (int k = 0; k < 25; k++) {
-                            int lightFarY = y - 2 + (k - k%5) / 5,
-                                lightFarX = x - 2 + k % 5;
-                            Cell* c;
+                            int lightFarY = y - 2 + (k - k%5) / 5;
+                            int lightFarX = x - 2 + k % 5;
                             int chunkX = chunk.second.getX();
                             int chunkY = chunk.second.getY();
-                            // std::cerr << "1) x: " << chunkX << " y: " << chunkY << " x1: " << lightFarX << " y1: " << lightFarY << std::endl;
+                            Cell* c;
 
                             try {
                                 c = chunk.second.getCell(lightFarX, lightFarY);
                             } catch (std::out_of_range) {
-                                if (lightFarX < 0) {
-                                    lightFarX = CHUNK_SIZE + lightFarX;
-                                    chunkX--;
-                                }
-                                else if (lightFarX >= CHUNK_SIZE) {
-                                    lightFarX = lightFarX % CHUNK_SIZE;
-                                    chunkX++;
-                                }
-
-                                if (lightFarY < 0) {
-                                    lightFarY = CHUNK_SIZE + lightFarY;
-                                    chunkY--;
-                                }
-                                else if (lightFarY >= CHUNK_SIZE) {
-                                    lightFarY = lightFarY % CHUNK_SIZE;
-                                    chunkY++;
-                                }
+                                fixCoordOutOfChunk(&lightFarX, &chunkX);
+                                fixCoordOutOfChunk(&lightFarY, &chunkY);
 
                                 if (buf.find({chunkX, chunkY}) != buf.end()) {
-                                    // std::cerr << "2) x: " << chunkX << " y: " << chunkY << " x1: " << lightFarX << " y1: " << lightFarY << std::endl;
                                     c = buf[{chunkX, chunkY}].getCell(lightFarX, lightFarY);
                                 } else continue;
                             }
+
                             char ch = c->getChar();
                             if (ch == '$') continue;
                             if (ch != '.') {
@@ -181,39 +160,24 @@ namespace Game {
                         }
 
                         for (int k = 0; k < 9; k++) {
-                            int lightNearY = y - 1 + (k - k%3) / 3,
-                                lightNearX = x - 1 + k % 3;
+                            int lightNearY = y - 1 + (k - k%3) / 3;
+                            int lightNearX = x - 1 + k % 3;
                             int chunkX = chunk.second.getX();
                             int chunkY = chunk.second.getY();
                             Cell* c;
-                            // std::cerr << "3) x: " << chunkX << " y: " << chunkY << " x1: " << lightNearX << " y1: " << lightNearY << std::endl;
+
                             try {
                                 c = chunk.second.getCell(lightNearX, lightNearY);
                             } catch (std::out_of_range) {
-
-                                if (lightNearX < 0) {
-                                    lightNearX = CHUNK_SIZE + lightNearX;
-                                    chunkX--;
-                                }
-                                else if (lightNearX >= CHUNK_SIZE) {
-                                    lightNearX = lightNearX % CHUNK_SIZE;
-                                    chunkX++;
-                                }
-
-                                if (lightNearY < 0) {
-                                    lightNearY = CHUNK_SIZE + lightNearY;
-                                    chunkY--;
-                                }
-                                else if (lightNearY >= CHUNK_SIZE) {
-                                    lightNearY = lightNearY % CHUNK_SIZE;
-                                    chunkY++;
-                                }
+                                fixCoordOutOfChunk(&lightNearX, &chunkX);
+                                fixCoordOutOfChunk(&lightNearY, &chunkY);
 
                                 if (buf.find({chunkX, chunkY}) != buf.end()) {
                                     // std::cerr << "4) x: " << chunkX << " y: " << chunkY << " x1: " << lightNearX << " y1: " << lightNearY << std::endl;
                                     c = buf[{chunkX, chunkY}].getCell(lightNearX, lightNearY);
                                 } else continue;
                             }
+
                             char ch = c->getChar();
                             if (ch == '$') continue;
                             if (ch != '.') {
@@ -227,8 +191,17 @@ namespace Game {
                 }
             }
         }
+    }
 
-        // updateEntityLayer();
+    void fixCoordOutOfChunk(int* coord, int* chunkCoord) {
+        if (*coord < 0) {
+            *coord += CHUNK_SIZE;
+            (*chunkCoord)--;
+        }
+        else if (*coord >= CHUNK_SIZE) {
+            *coord = *coord % CHUNK_SIZE;
+            (*chunkCoord)++;
+        }
     }
 
     void updateAnimations() {

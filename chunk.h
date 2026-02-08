@@ -3,7 +3,7 @@
 
 #include "cell.h"
 
-constexpr int CHUNK_SIZE = 16;
+constexpr int CHUNK_SIZE = 32;
 
 class Chunk {
 public:

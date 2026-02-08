@@ -70,12 +70,13 @@ namespace Game {
     void drawField(int rows, int cols);
     void updateViewportCenterCoordinates(int* leftViewportXPtr, int* topViewportYPtr);
     void lightShader();
-    void resetShader();
+    void fixCoordOutOfChunk(int* coord, int* chunkCoord);
     void updateAnimations();
     void updateEntityLayer();
 
     // helper functions
     std::pair<int, int> getCoordinatesInDirection(std::pair<int, int> point, int dir);
+    std::pair<int, int> getChunkCoords(std::pair<int, int> point);
     bool isBlockSolid(std::pair<int, int> point, Entity* thisEntity);
     bool isBlockSolidPlayer(std::pair<int, int> point);
 }
