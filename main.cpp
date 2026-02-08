@@ -8,7 +8,7 @@
 #include "chunk.h"
 
 int main() {
-    printf("%d", -4 % 2);
+    // printf("%d", -3 / 2);
 
     winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -32,10 +32,11 @@ int main() {
         for (int x = 0; x < chunkSize; x++) {
             Cell cell;
             cell.setChar('.');
-            cell.setPosition(y, x);
-            chunk.setCell(y, x, cell);
+            cell.setPosition(x, y);
+            chunk.setCell(x, y, cell);
         }
-    } chunk.setPosition(0, 0);
+    }
+    chunk.setPosition(0, 0);
     buf[std::make_pair(0, 0)] = chunk;
 
     Chunk chunk1;
@@ -43,19 +44,24 @@ int main() {
         for (int x = 0; x < chunkSize; x++) {
             Cell cell;
             cell.setChar('.');
-            cell.setPosition(y, x);
-            chunk1.setCell(y, x, cell);
+            cell.setPosition(x, y);
+            chunk1.setCell(x, y, cell);
         }
-    } chunk1.setPosition(1, 0);
-    buf[std::make_pair(1, 0)] = chunk1;
+    }
+    chunk1.setPosition(-1, 0);
+    buf[std::make_pair(-1, 0)] = chunk1;
 
     int rows = w.ws_row;
     int cols = w.ws_col;
 
-    int leftViewportX, topViewportY;
-    Game::updateViewportCenterCoordinates(&leftViewportX, &topViewportY);
-    int rightViewportX = leftViewportX + Game::VIEWPORT_COLS,
-            bottomViewportY = topViewportY + Game::VIEWPORT_ROWS;
+    int playerX = 0;
+    int playerY = 1;
+
+    int leftViewportX = playerX - Game::VIEWPORT_COLS / 2;
+    int topViewportY = playerY - Game::VIEWPORT_ROWS / 2;
+
+    int rightViewportX = leftViewportX + Game::VIEWPORT_COLS;
+    int bottomViewportY = topViewportY + Game::VIEWPORT_ROWS;
 
     std::cout << "\033[2J\033[1;1H\033[?25l";
     std::cout << "WASD / HJKL - move, QE - rotate, F - block, R - light, C - destroy, Z - exit\n\n";
@@ -68,7 +74,8 @@ int main() {
         }
     }
 
-    for (int y = topViewportY; y < bottomViewportY; y++) {
+    for (int testY = topViewportY; testY < bottomViewportY; testY++) {
+        int y = -testY;
         // left side padding
         for (int x = 0; x < cols / 2 - Game::VIEWPORT_COLS; x++)
             std::cout << ' ';
@@ -76,14 +83,23 @@ int main() {
         for (int x = leftViewportX; x < rightViewportX; x++) {
 
             int chunkX = x / CHUNK_SIZE;
+            if (x < 0) chunkX--;
+
             int chunkY = y / CHUNK_SIZE;
+            if (y < 0) chunkY--;
 
             char displayedChar;
             auto it = buf.find({chunkX, chunkY});
             if (it != buf.end()) {
-                displayedChar = buf[{chunkX, chunkY}].getCell(y % chunkSize, x % chunkSize).getChar();
+                int cellChunkX = (x - (chunkX * chunkSize));
+                int cellChunkY = (y - (chunkY * chunkSize));
+                displayedChar = buf[{chunkX, chunkY}].getCell(cellChunkX, cellChunkY).getChar();
             } else {
                 displayedChar = ' ';
+            }
+
+            if (x == playerX && y == playerY) {
+                displayedChar = '&';
             }
 
             std::cout << displayedChar << ' ';

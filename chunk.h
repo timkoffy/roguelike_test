@@ -20,7 +20,7 @@ public:
 
     void setPosition(int newX, int newY) {
         m_x = newX;
-        m_x = newY;
+        m_y = newY;
     }
     void setCell(const int x, const int y, const Cell& cell) {
         cells.at(y).at(x) = cell;
