@@ -159,7 +159,27 @@ namespace Game {
 
     // reset all data
     void createInitialField() {
-        srand(123);
+        int seed = 1003940421;
+        srand(seed);
+
+        // for (int y = 0; y < ROWS; y++) {
+        //     for (int x = 0; x < COLS; x++) {
+        //         if (((y / 10) % 10) % 2 == 0 ^ ((x / 10) % 10) % 2 == 0) {
+        //             baseLayer.at(y).at(x).setChar('.');
+        //             continue;
+        //         } baseLayer.at(y).at(x).setChar('@');
+        //     }
+        // }
+
+        // for (int y = 1; y < ROWS; y++) {
+        //     for (int x = 1; x < COLS; x++) {
+        //         if (seed ) {
+        //             baseLayer.at(y).at(x).setChar('@');
+        //             continue;
+        //         } baseLayer.at(y).at(x).setChar('.');
+        //     }
+        // }
+
         for (int y = 0; y < ROWS; y++) {
             for (int x = 0; x < COLS; x++) {
                 if (rand() % 100 == rand() % 100) {
@@ -218,11 +238,11 @@ namespace Game {
         baseLayer.at(8).at(2).setChar('$');
         baseLayer.at(3).at(5).setChar('$');
 
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
-                std::cout << baseLayer.at(y).at(x).getChar() << ' ';
-            } std::cout << '\n';
-        }
+        // for (int y = 0; y < ROWS; y++) {
+        //     for (int x = 0; x < COLS; x++) {
+        //         std::cout << baseLayer.at(y).at(x).getChar() << ' ';
+        //     } std::cout << '\n';
+        // }
 
         playerX = 0;
         playerY = 0;

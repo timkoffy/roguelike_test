@@ -3,24 +3,33 @@
 #include <iostream>
 #include "cell.h"
 
-constexpr int SIZE_CHUNK = 16;
+constexpr int CHUNK_SIZE = 16;
 
 class Chunk {
 public:
-    Chunk() : x(0), y(0) {}
+    Chunk() : m_x(0), m_y(0) {}
 
-    Chunk(int x, int y) : x(x), y(y) {}
+    Chunk(const int x, const int y) : m_x(x), m_y(y) {}
 
-    virtual ~Chunk() {}
+    virtual ~Chunk() = default;
 
-    int getX() const { return x; }
-    int getY() const { return y; }
-    void setCell(Cell cell) const { cells.insert(cells.end(), cell); }
+    int getX() const { return m_x; }
+    int getY() const { return m_y; }
+    Cell getCell(const int x, const int y) { return cells.at(y).at(x); }
+    int getChunkSize() const { return CHUNK_SIZE; }
+
+    void setPosition(int newX, int newY) {
+        m_x = newX;
+        m_x = newY;
+    }
+    void setCell(const int x, const int y, const Cell& cell) {
+        cells.at(y).at(x) = cell;
+    }
 
 protected:
-    int x;
-    int y;
-    std::array<std::array<Cell, SIZE_CHUNK>, SIZE_CHUNK> cells;
+    int m_x;
+    int m_y;
+    std::array<std::array<Cell, CHUNK_SIZE>, CHUNK_SIZE> cells;
 };
 
 
