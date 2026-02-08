@@ -1,10 +1,13 @@
 #pragma once
 #include <chrono>
+#include <unordered_map>
 #include <utility>
 
+#include "chunk.h"
 #include "entity.h"
 
 namespace Game {
+    struct PairHash;
     constexpr int ROWS = 90;
     constexpr int COLS = 90;
     constexpr int VIEWPORT_ROWS = 11;
@@ -38,6 +41,7 @@ namespace Game {
     extern std::array<std::array<int, COLS>, ROWS> colorLayer;
     extern std::array<std::array<bool, COLS>, ROWS> isItalicLayer;
 
+    extern std::unordered_map<std::pair<int, int>, Chunk, PairHash> buf;
     extern std::vector<std::unique_ptr<Entity>> entities;
 
     extern int playerX;

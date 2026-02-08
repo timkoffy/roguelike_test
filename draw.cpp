@@ -2,8 +2,15 @@
 #include <iostream>
 
 #include "cell.h"
+#include "chunk.h"
 
 namespace Game {
+    struct PairHash {
+        size_t operator()(const std::pair<int, int>& p) const {
+            return std::hash<int>()(p.first) ^ (std::hash<int>()(p.second) << 1);
+        }
+    };
+
     // draw viewport field (segment from buffer)
     void drawField(int rows, int cols) {
         std::cout << "\033[2J\033[1;1H\033[?25l";
@@ -18,57 +25,76 @@ namespace Game {
             }
         }
 
-        int leftViewportX, topViewportY;
-        updateViewportCenterCoordinates(&leftViewportX, &topViewportY);
-        int rightViewportX = leftViewportX + VIEWPORT_COLS,
-            bottomViewportY = topViewportY + VIEWPORT_ROWS;
+        int leftViewportX = playerX - VIEWPORT_COLS / 2;
+        int topViewportY = -playerY - VIEWPORT_ROWS / 2;
 
-        for (int y = topViewportY; y < bottomViewportY; y++) {
+        int rightViewportX = leftViewportX + VIEWPORT_COLS;
+        int bottomViewportY = topViewportY + VIEWPORT_ROWS;
+
+        for (int testY = topViewportY; testY < bottomViewportY; testY++) {
+            int y = -testY;
             // left side padding
             for (int x = 0; x < cols / 2 - VIEWPORT_COLS; x++)
                 std::cout << ' ';
             // paste buffer
             for (int x = leftViewportX; x < rightViewportX; x++) {
-                if (x == playerX && y == playerY ) {
-                    std::cout << '&' << ' ';
-                    continue;
+
+                int chunkX = x / CHUNK_SIZE;
+                if (x < 0) chunkX--;
+
+                int chunkY = y / CHUNK_SIZE;
+                if (y < 0) chunkY--;
+
+                char displayedChar;
+
+                if (buf.find({chunkX, chunkY}) != buf.end()) {
+                    int cellChunkX = (x - (chunkX * CHUNK_SIZE));
+                    int cellChunkY = (y - (chunkY * CHUNK_SIZE));
+                    displayedChar = buf[{chunkX, chunkY}].getCell(cellChunkX, cellChunkY).getChar();
+                } else {
+                    displayedChar = ' ';
                 }
 
-                char displayedChar = baseLayer.at(y).at(x).getChar();
-                if (entityLayer.at(y).at(x) != ' ') {
-                    displayedChar = entityLayer.at(y).at(x);
+                if (x == playerX && y == playerY) {
+                    displayedChar = '&';
                 }
 
-                const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
-                if (x == directionPointer.first && y == directionPointer.second) {
-                    std::cout << "\033[38;5;" << Colors::WHITE_COLOR << "m" << displayedChar << "\033[0m" << ' ';
-                    continue;
-                }
-
-                int color = colorLayer.at(y).at(x);
-                if (isItalicLayer.at(y).at(x)) {
-                    std::cout << "\033[3m\033[38;5;" << color << "m" << displayedChar << "\033[0m\033[23m" << ' ';
-                    continue;
-                }
-                std::cout << "\033[38;5;" << color << "m" << displayedChar << "\033[0m" << ' ';
+                std::cout << displayedChar << ' ';
             } std::cout << '\n';
         }
         std::cout.flush();
-    }
-
-    // update viewport range
-    void updateViewportCenterCoordinates(int* leftViewportXPtr, int* topViewportYPtr) {
-        int leftViewportX = playerX - VIEWPORT_COLS / 2;
-        int topViewportY = playerY - VIEWPORT_ROWS / 2;
-
-        if (leftViewportX < 0) leftViewportX = 0;
-        else if (leftViewportX + VIEWPORT_COLS >= COLS) leftViewportX = COLS - VIEWPORT_COLS;
-
-        if (topViewportY < 0) topViewportY = 0;
-        else if (topViewportY + VIEWPORT_ROWS >= ROWS) topViewportY = ROWS - VIEWPORT_ROWS;
-
-        *leftViewportXPtr = leftViewportX;
-        *topViewportYPtr = topViewportY;
+        //
+        // for (int y = topViewportY; y < bottomViewportY; y++) {
+        //     // left side padding
+        //     for (int x = 0; x < cols / 2 - VIEWPORT_COLS; x++)
+        //         std::cout << ' ';
+        //     // paste buffer
+        //     for (int x = leftViewportX; x < rightViewportX; x++) {
+        //         if (x == playerX && y == playerY ) {
+        //             std::cout << '&' << ' ';
+        //             continue;
+        //         }
+        //
+        //         char displayedChar = baseLayer.at(y).at(x).getChar();
+        //         if (entityLayer.at(y).at(x) != ' ') {
+        //             displayedChar = entityLayer.at(y).at(x);
+        //         }
+        //
+        //         const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
+        //         if (x == directionPointer.first && y == directionPointer.second) {
+        //             std::cout << "\033[38;5;" << Colors::WHITE_COLOR << "m" << displayedChar << "\033[0m" << ' ';
+        //             continue;
+        //         }
+        //
+        //         int color = colorLayer.at(y).at(x);
+        //         if (isItalicLayer.at(y).at(x)) {
+        //             std::cout << "\033[3m\033[38;5;" << color << "m" << displayedChar << "\033[0m\033[23m" << ' ';
+        //             continue;
+        //         }
+        //         std::cout << "\033[38;5;" << color << "m" << displayedChar << "\033[0m" << ' ';
+        //     } std::cout << '\n';
+        // }
+        // std::cout.flush();
     }
 
     void resetShader() {

@@ -1,12 +1,14 @@
 #include "game.hpp"
 #include <chrono>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <thread>
+#include <unordered_map>
 
 #include "cell.h"
 #include "entities.h"
 #include "entity.h"
+#include "chunk.h"
 
 namespace Game {
     std::array<std::array<Cell, COLS>, ROWS> baseLayer;
@@ -14,6 +16,13 @@ namespace Game {
     std::array<std::array<int, COLS>, ROWS> colorLayer;
     std::array<std::array<bool, COLS>, ROWS> isItalicLayer {false};
 
+    struct PairHash {
+        size_t operator()(const std::pair<int, int>& p) const {
+            return std::hash<int>()(p.first) ^ (std::hash<int>()(p.second) << 1);
+        }
+    };
+
+    std::unordered_map<std::pair<int, int>, Chunk, PairHash> buf;
     std::vector<std::unique_ptr<Entity>> entities;
 
     int playerX = 0;
@@ -29,12 +38,12 @@ namespace Game {
     void runTime(int rows, int cols) {
         std::cout << "\033[2J\033[1;1H" << "press any key...";
 
-        readFromFile();
+        // readFromFile();
 
         entities.push_back(std::make_unique<Entities::Orc>(2, 6));
         entities.push_back(std::make_unique<Entities::Orc>(5, 8));
 
-        lightShader();
+        // lightShader();
 
         // game loop
         while (true) {
@@ -159,95 +168,124 @@ namespace Game {
 
     // reset all data
     void createInitialField() {
-        int seed = 1003940421;
-        srand(seed);
-
+        // int seed = 1003940421;
+        // srand(seed);
+        //
+        // // for (int y = 0; y < ROWS; y++) {
+        // //     for (int x = 0; x < COLS; x++) {
+        // //         if (((y / 10) % 10) % 2 == 0 ^ ((x / 10) % 10) % 2 == 0) {
+        // //             baseLayer.at(y).at(x).setChar('.');
+        // //             continue;
+        // //         } baseLayer.at(y).at(x).setChar('@');
+        // //     }
+        // // }
+        //
+        // // for (int y = 1; y < ROWS; y++) {
+        // //     for (int x = 1; x < COLS; x++) {
+        // //         if (seed ) {
+        // //             baseLayer.at(y).at(x).setChar('@');
+        // //             continue;
+        // //         } baseLayer.at(y).at(x).setChar('.');
+        // //     }
+        // // }
+        //
         // for (int y = 0; y < ROWS; y++) {
         //     for (int x = 0; x < COLS; x++) {
-        //         if (((y / 10) % 10) % 2 == 0 ^ ((x / 10) % 10) % 2 == 0) {
-        //             baseLayer.at(y).at(x).setChar('.');
+        //         if (rand() % 100 == rand() % 100) {
+        //             baseLayer.at(y).at(x).setChar('/');
         //             continue;
         //         } baseLayer.at(y).at(x).setChar('@');
         //     }
         // }
-
-        // for (int y = 1; y < ROWS; y++) {
-        //     for (int x = 1; x < COLS; x++) {
-        //         if (seed ) {
-        //             baseLayer.at(y).at(x).setChar('@');
-        //             continue;
-        //         } baseLayer.at(y).at(x).setChar('.');
-        //     }
-        // }
-
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
-                if (rand() % 100 == rand() % 100) {
-                    baseLayer.at(y).at(x).setChar('/');
-                    continue;
-                } baseLayer.at(y).at(x).setChar('@');
-            }
-        }
-
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
-                if (baseLayer.at(y).at(x).getChar() == '/') {
-                    int offset = rand() % 10 + 3;
-                    for (int xSub = x - offset; xSub < x + offset; xSub++) {
-                        if (xSub < 0 || xSub >= COLS)
-                            continue;
-
-                        int ySub = sqrt((offset - 1) * (offset - 1) - (xSub - x) * (xSub - x)) + y;
-
-                        if (ySub < 0 || ySub >= ROWS)
-                            continue;
-
-                        baseLayer.at(ySub).at(xSub).setChar('.');
-                        for (int yFill = ySub - 1; yFill > y; yFill--) {
-                            baseLayer.at(yFill).at(xSub).setChar('.');
-                        }
-
-                        ySub = -sqrt((offset - 1) * (offset - 1) - (xSub - x) * (xSub - x)) + y;
-
-                        if (ySub < 0 || ySub >= ROWS)
-                            continue;
-
-                        baseLayer.at(ySub).at(xSub).setChar('.');
-                        for (int yFill = ySub; yFill <= y; yFill++) {
-                            baseLayer.at(yFill).at(xSub).setChar('.');
-                        }
-                    }
-                }
-            }
-        }
-
-        // for (int y = 1; y < ROWS - 1; y++) {
-        //     for (int x = 1; x < COLS - 1; x++) {
-        //         if ((baseLayer.at(y).at(x).getChar() != baseLayer.at(y-1).at(x).getChar() &&
-        //             baseLayer.at(y).at(x).getChar() != baseLayer.at(y+1).at(x).getChar()) ||
-        //             (baseLayer.at(y).at(x).getChar() != baseLayer.at(y).at(x-1).getChar() &&
-        //             baseLayer.at(y).at(x).getChar() != baseLayer.at(y).at(x+1).getChar())) {
-        //             if (baseLayer.at(y).at(x).getChar() == '.')
-        //                 baseLayer.at(y).at(x).setChar('@');
-        //             else baseLayer.at(y).at(x).setChar('.');
-        //             x++;
+        //
+        // for (int y = 0; y < ROWS; y++) {
+        //     for (int x = 0; x < COLS; x++) {
+        //         if (baseLayer.at(y).at(x).getChar() == '/') {
+        //             int offset = rand() % 10 + 3;
+        //             for (int xSub = x - offset; xSub < x + offset; xSub++) {
+        //                 if (xSub < 0 || xSub >= COLS)
+        //                     continue;
+        //
+        //                 int ySub = sqrt((offset - 1) * (offset - 1) - (xSub - x) * (xSub - x)) + y;
+        //
+        //                 if (ySub < 0 || ySub >= ROWS)
+        //                     continue;
+        //
+        //                 baseLayer.at(ySub).at(xSub).setChar('.');
+        //                 for (int yFill = ySub - 1; yFill > y; yFill--) {
+        //                     baseLayer.at(yFill).at(xSub).setChar('.');
+        //                 }
+        //
+        //                 ySub = -sqrt((offset - 1) * (offset - 1) - (xSub - x) * (xSub - x)) + y;
+        //
+        //                 if (ySub < 0 || ySub >= ROWS)
+        //                     continue;
+        //
+        //                 baseLayer.at(ySub).at(xSub).setChar('.');
+        //                 for (int yFill = ySub; yFill <= y; yFill++) {
+        //                     baseLayer.at(yFill).at(xSub).setChar('.');
+        //                 }
+        //             }
         //         }
         //     }
         // }
+        //
+        // // for (int y = 1; y < ROWS - 1; y++) {
+        // //     for (int x = 1; x < COLS - 1; x++) {
+        // //         if ((baseLayer.at(y).at(x).getChar() != baseLayer.at(y-1).at(x).getChar() &&
+        // //             baseLayer.at(y).at(x).getChar() != baseLayer.at(y+1).at(x).getChar()) ||
+        // //             (baseLayer.at(y).at(x).getChar() != baseLayer.at(y).at(x-1).getChar() &&
+        // //             baseLayer.at(y).at(x).getChar() != baseLayer.at(y).at(x+1).getChar())) {
+        // //             if (baseLayer.at(y).at(x).getChar() == '.')
+        // //                 baseLayer.at(y).at(x).setChar('@');
+        // //             else baseLayer.at(y).at(x).setChar('.');
+        // //             x++;
+        // //         }
+        // //     }
+        // // }
+        //
+        // baseLayer.at(8).at(2).setChar('$');
+        // baseLayer.at(3).at(5).setChar('$');
+        //
+        // // for (int y = 0; y < ROWS; y++) {
+        // //     for (int x = 0; x < COLS; x++) {
+        // //         std::cout << baseLayer.at(y).at(x).getChar() << ' ';
+        // //     } std::cout << '\n';
+        // // }
+        //
+        // playerX = 0;
+        // playerY = 0;
+        // direction = 0;
+        // saveToFile();
 
-        baseLayer.at(8).at(2).setChar('$');
-        baseLayer.at(3).at(5).setChar('$');
+        Chunk chunk;
+        const int chunkSize = chunk.getChunkSize();
+        for (int y = 0; y < chunkSize; y++) {
+            for (int x = 0; x < chunkSize; x++) {
+                Cell cell;
+                cell.setChar('.');
+                cell.setPosition(x, y);
+                chunk.setCell(x, y, cell);
+            }
+        }
+        chunk.setPosition(0, 0);
+        buf[std::make_pair(0, 0)] = chunk;
 
-        // for (int y = 0; y < ROWS; y++) {
-        //     for (int x = 0; x < COLS; x++) {
-        //         std::cout << baseLayer.at(y).at(x).getChar() << ' ';
-        //     } std::cout << '\n';
-        // }
-
+        Chunk chunk1;
+        for (int y = 0; y < chunkSize; y++) {
+            for (int x = 0; x < chunkSize; x++) {
+                Cell cell;
+                cell.setChar('.');
+                cell.setPosition(x, y);
+                chunk1.setCell(x, y, cell);
+            }
+        }
+        chunk1.setPosition(-1, 0);
+        buf[std::make_pair(-1, 0)] = chunk1;
         playerX = 0;
         playerY = 0;
         direction = 0;
-        saveToFile();
+        // saveToFile();
     }
 
     void move(int dir) {
@@ -294,15 +332,15 @@ namespace Game {
             y = point.second;
 
         switch (dir) {
-            case 0: y--; break;
+            case 0: y++; break;
             case 1: x--; break;
-            case 2: y++; break;
+            case 2: y--; break;
             case 3: x++; break;
             default: break;
         }
 
-        if (x < 0 || x >= COLS || y < 0 || y >= ROWS)
-            return {point.first, point.second};
+        // if (x < 0 || x >= COLS || y < 0 || y >= ROWS)
+        //     return {point.first, point.second};
         return {x, y};
     }
 
@@ -320,17 +358,18 @@ namespace Game {
     }
 
     bool isBlockSolidPlayer(std::pair<int, int> point) {
-        char ch = baseLayer.at(point.second).at(point.first).getChar();
-        if (ch != '.' && ch != 'D')
-            return true;
-
-        for (const auto& entity : entities) {
-            if (point.first == entity->getX() && point.second == entity->getY()) {
-                entity->onPlayerInteraction();
-                lightShader();
-                if (entity->getIsSolid())
-                    return true;
-            }
-        } return false;
+        // char ch = baseLayer.at(point.second).at(point.first).getChar();
+        // if (ch != '.' && ch != 'D')
+        //     return true;
+        //
+        // for (const auto& entity : entities) {
+        //     if (point.first == entity->getX() && point.second == entity->getY()) {
+        //         entity->onPlayerInteraction();
+        //         lightShader();
+        //         if (entity->getIsSolid())
+        //             return true;
+        //     }
+        // } return false;
+        return false;
     }
 }
