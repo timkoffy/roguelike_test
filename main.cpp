@@ -1,11 +1,7 @@
 #include "game.hpp"
-#include <cstdlib>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <unordered_map>
-
-#include "chunk.h"
 
 int main() {
     winsize w;

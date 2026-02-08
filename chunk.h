@@ -16,14 +16,13 @@ public:
     int getX() const { return m_x; }
     int getY() const { return m_y; }
     Cell getCell(const int x, const int y) { return cells.at(y).at(x); }
-    int getChunkSize() const { return CHUNK_SIZE; }
 
     void setPosition(int newX, int newY) {
         m_x = newX;
         m_y = newY;
     }
-    void setCell(const int x, const int y, const Cell& cell) {
-        cells.at(y).at(x) = cell;
+    void setCell(const Cell& cell) {
+        cells.at(cell.getChunkY()).at(cell.getChunkX()) = cell;
     }
 
 protected:

@@ -1,7 +1,6 @@
 #pragma once
 #include <chrono>
 #include <unordered_map>
-#include <utility>
 
 #include "chunk.h"
 #include "entity.h"
@@ -50,12 +49,15 @@ namespace Game {
     extern int ticks;
     extern int lastTick;
 
-    // main functions
+    // game field functions
     void runTime(int rows, int cols);
     void readFromFile();
     void saveToFile();
     void editByteInFile(int x, int y, char ch);
     void createInitialField();
+    void createChunk(int chunkX, int chunkY);
+
+    // entity functions
     void move(int dir);
     void rotateDirection(bool isClockwise);
     void placeBlockInFrontOfPlayer(char block);

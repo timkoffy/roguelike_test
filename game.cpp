@@ -252,40 +252,33 @@ namespace Game {
         // //         std::cout << baseLayer.at(y).at(x).getChar() << ' ';
         // //     } std::cout << '\n';
         // // }
-        //
-        // playerX = 0;
-        // playerY = 0;
-        // direction = 0;
-        // saveToFile();
 
-        Chunk chunk;
-        const int chunkSize = chunk.getChunkSize();
-        for (int y = 0; y < chunkSize; y++) {
-            for (int x = 0; x < chunkSize; x++) {
-                Cell cell;
-                cell.setChar('.');
-                cell.setPosition(x, y);
-                chunk.setCell(x, y, cell);
-            }
-        }
-        chunk.setPosition(0, 0);
-        buf[std::make_pair(0, 0)] = chunk;
+        createChunk(0, 0);
+        createChunk(1, 0);
 
-        Chunk chunk1;
-        for (int y = 0; y < chunkSize; y++) {
-            for (int x = 0; x < chunkSize; x++) {
-                Cell cell;
-                cell.setChar('.');
-                cell.setPosition(x, y);
-                chunk1.setCell(x, y, cell);
-            }
-        }
-        chunk1.setPosition(-1, 0);
-        buf[std::make_pair(-1, 0)] = chunk1;
+        Cell c(2, 3, '$');
+        buf[{0, 0}].setCell(c);
+        Cell c1(5, 2, '$');
+        buf[{0, 0}].setCell(c1);
+
         playerX = 0;
         playerY = 0;
         direction = 0;
         // saveToFile();
+    }
+
+    void createChunk(int chunkX, int chunkY) {
+        Chunk chunk;
+        for (int y = 0; y < CHUNK_SIZE; y++) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                Cell cell;
+                cell.setChar('.');
+                cell.setChunkPosition(x, y);
+                chunk.setCell(cell);
+            }
+        }
+        chunk.setPosition(chunkX, chunkY);
+        buf[{chunkX, chunkY}] = chunk;
     }
 
     void move(int dir) {
@@ -339,8 +332,6 @@ namespace Game {
             default: break;
         }
 
-        // if (x < 0 || x >= COLS || y < 0 || y >= ROWS)
-        //     return {point.first, point.second};
         return {x, y};
     }
 
@@ -352,7 +343,7 @@ namespace Game {
         for (const auto& entity : entities) {
             if (entity.get() == thisEntity) continue;
 
-            if (point.first == entity->getX() && point.second == entity->getY())
+            if (point.first == entity->getChunkX() && point.second == entity->getChunkY())
                 return true;
         } return false;
     }

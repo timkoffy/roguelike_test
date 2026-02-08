@@ -162,8 +162,8 @@ namespace Game {
     void updateAnimations() {
         for (auto& entity : entities) {
             entity->update();
-            int x = entity->getX();
-            int y = entity->getY();
+            int x = entity->getChunkX();
+            int y = entity->getChunkY();
             entityLayer.at(y).at(x) = entity->getChar();
         }
 
@@ -190,8 +190,8 @@ namespace Game {
             }
         }
         for (const auto& entity : entities) {
-            int x = entity->getX();
-            int y = entity->getY();
+            int x = entity->getChunkX();
+            int y = entity->getChunkY();
             entityLayer.at(y).at(x) = entity->getChar();
             colorLayer.at(y).at(x) = entity->getColor();
         }
