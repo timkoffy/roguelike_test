@@ -46,20 +46,25 @@ namespace Game {
                 if (y < 0) chunkY--;
 
                 char displayedChar;
+                int color;
 
                 if (buf.find({chunkX, chunkY}) != buf.end()) {
                     int cellChunkX = (x - (chunkX * CHUNK_SIZE));
                     int cellChunkY = (y - (chunkY * CHUNK_SIZE));
-                    displayedChar = buf[{chunkX, chunkY}].getCell(cellChunkX, cellChunkY).getChar();
+                    Cell* displayedCell = buf[{chunkX, chunkY}].getCell(cellChunkX, cellChunkY);
+                    displayedChar = displayedCell->getChar();
+                    color = displayedCell->getColor();
                 } else {
                     displayedChar = ' ';
+                    color = 0;
                 }
 
                 if (x == playerX && y == playerY) {
                     displayedChar = '&';
+                    color = Colors::WHITE_COLOR;
                 }
 
-                std::cout << displayedChar << ' ';
+                std::cout << "\033[38;5;" << color << "m" << displayedChar << "\033[0m" << ' ';
             } std::cout << '\n';
         }
         std::cout.flush();
@@ -98,19 +103,24 @@ namespace Game {
     }
 
     void resetShader() {
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
-                colorLayer.at(y).at(x) = Colors::FIELD_COLOR;
+        for (auto& chunk : buf) {
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+                for (int x = 0; x < CHUNK_SIZE; x++) {
+                    Cell* c = chunk.second.getCell(x, y);
+                    c->setColor(Colors::FIELD_COLOR);
+                }
             }
         }
     }
 
     // shader for walls
     void wallShader() {
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
-                if (baseLayer.at(y).at(x).getChar() != '.') {
-                    colorLayer.at(y).at(x) = Colors::WALL_COLOR;
+        for (auto& chunk : buf) {
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+                for (int x = 0; x < CHUNK_SIZE; x++) {
+                    if (Cell* c = chunk.second.getCell(x, y); c->getChar() != '.') {
+                        c->setColor(Colors::WALL_COLOR);
+                    }
                 }
             }
         }
@@ -121,42 +131,46 @@ namespace Game {
         resetShader();
         wallShader();
 
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
-                if (baseLayer.at(y).at(x).getChar() == '$') {
-                    for (int k = 0; k < 25; k++) {
-                        int row = y - 2 + (k - k%5) / 5,
-                            col = x - 2 + k % 5;
-                        if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-                            char ch = baseLayer.at(row).at(col).getChar();
-                            if (ch == '$') continue;
-                            if (ch != '.') {
-                                if (colorLayer.at(row).at(col) != Colors::WALL_LIGHT_NEAR_COLOR)
-                                    colorLayer.at(row).at(col) = Colors::WALL_LIGHT_FAR_COLOR;
-                                continue;
+        for (auto& chunk : buf) {
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+                for (int x = 0; x < CHUNK_SIZE; x++) {
+                    if (chunk.second.getCell(x, y)->getChar() == '$') {
+                        for (int k = 0; k < 25; k++) {
+                            int topLightFarY = y - 2 + (k - k%5) / 5,
+                                leftLightFarX = x - 2 + k % 5;
+                            if (true) {
+                                Cell* c = chunk.second.getCell(leftLightFarX, topLightFarY);
+                                char ch = c->getChar();
+                                if (ch == '$') continue;
+                                if (ch != '.') {
+                                    if (c->getColor() != Colors::WALL_LIGHT_NEAR_COLOR)
+                                        c->setColor(Colors::WALL_LIGHT_FAR_COLOR);
+                                    continue;
+                                }
+                                if (c->getColor() != Colors::LIGHT_NEAR_COLOR)
+                                    c->setColor(Colors::LIGHT_FAR_COLOR);
                             }
-                            if (colorLayer.at(row).at(col) != Colors::LIGHT_NEAR_COLOR)
-                                colorLayer.at(row).at(col) = Colors::LIGHT_FAR_COLOR;
                         }
-                    }
-                    for (int k = 0; k < 9; k++) {
-                        int row = y - 1 + (k - k%3) / 3,
-                            col = x - 1 + k % 3;
-                        if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
-                            char ch = baseLayer.at(row).at(col).getChar();
-                            if (ch == '$') continue;
-                            if (ch != '.') {
-                                colorLayer.at(row).at(col) = Colors::WALL_LIGHT_NEAR_COLOR;
-                                continue;
-                            } colorLayer.at(row).at(col) = Colors::LIGHT_NEAR_COLOR;
+                        for (int k = 0; k < 9; k++) {
+                            int topLightNearY = y - 1 + (k - k%3) / 3,
+                                leftLightNearX = x - 1 + k % 3;
+                            if (true) {
+                                Cell* c = chunk.second.getCell(leftLightNearX, topLightNearY);
+                                char ch = c->getChar();
+                                if (ch == '$') continue;
+                                if (ch != '.') {
+                                    c->setColor(Colors::WALL_LIGHT_NEAR_COLOR);
+                                    continue;
+                                } c->setColor(Colors::LIGHT_NEAR_COLOR);
+                            }
                         }
+                        chunk.second.getCell(x, y)->setColor(Colors::LIGHT_SOURCE_COLOR);
                     }
-                    colorLayer.at(y).at(x) = Colors::LIGHT_SOURCE_COLOR;
                 }
             }
         }
 
-        updateEntityLayer();
+        // updateEntityLayer();
     }
 
     void updateAnimations() {

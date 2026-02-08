@@ -1,33 +1,33 @@
 #ifndef ROGUELIKE_TEST_CHUNK_H
 #define ROGUELIKE_TEST_CHUNK_H
-#include <iostream>
+
 #include "cell.h"
 
 constexpr int CHUNK_SIZE = 16;
 
 class Chunk {
 public:
-    Chunk() : m_x(0), m_y(0) {}
+    Chunk() : x(0), y(0) {}
 
-    Chunk(const int x, const int y) : m_x(x), m_y(y) {}
+    Chunk(const int x, const int y) : x(x), y(y) {}
 
     virtual ~Chunk() = default;
 
-    int getX() const { return m_x; }
-    int getY() const { return m_y; }
-    Cell getCell(const int x, const int y) { return cells.at(y).at(x); }
+    int getX() const { return x; }
+    int getY() const { return y; }
+    Cell* getCell(const int cellX, const int cellY) { return &cells.at(cellY).at(cellX); }
 
     void setPosition(int newX, int newY) {
-        m_x = newX;
-        m_y = newY;
+        x = newX;
+        y = newY;
     }
     void setCell(const Cell& cell) {
         cells.at(cell.getChunkY()).at(cell.getChunkX()) = cell;
     }
 
 protected:
-    int m_x;
-    int m_y;
+    int x;
+    int y;
     std::array<std::array<Cell, CHUNK_SIZE>, CHUNK_SIZE> cells;
 };
 

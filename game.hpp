@@ -70,6 +70,7 @@ namespace Game {
     void drawField(int rows, int cols);
     void updateViewportCenterCoordinates(int* leftViewportXPtr, int* topViewportYPtr);
     void lightShader();
+    void resetShader();
     void updateAnimations();
     void updateEntityLayer();
 

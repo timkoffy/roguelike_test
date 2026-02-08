@@ -43,7 +43,7 @@ namespace Game {
         entities.push_back(std::make_unique<Entities::Orc>(2, 6));
         entities.push_back(std::make_unique<Entities::Orc>(5, 8));
 
-        // lightShader();
+        lightShader();
 
         // game loop
         while (true) {
@@ -67,7 +67,8 @@ namespace Game {
             }
 
             ticks++;
-            updateAnimations();
+            // updateAnimations();
+            lightShader();
 
             // sync fps to 60
             const auto start = std::chrono::high_resolution_clock::now();
@@ -95,7 +96,7 @@ namespace Game {
             for (int x = 0; x < COLS; x++) {
                 char ch;
                 fread(&ch, 1, 1, f);
-                baseLayer.at(y).at(x) = Cell(x, y, ch);
+                baseLayer.at(y).at(x) = Cell(x, y, ch, 0);
             }
         }
 

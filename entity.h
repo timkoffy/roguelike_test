@@ -6,12 +6,11 @@
 class Entity : public Cell {
 public:
     Entity(int x, int y, char ch, int id, int color)
-        : Cell(x, y, ch), id(id), color(color), isAnimated(false), isSolid(false) {
+        : Cell(x, y, ch, color), id(id), isAnimated(false), isSolid(false) {
     }
 
     virtual ~Entity() = default;
 
-    int getColor() const { return color; }
     int getId() const { return id; }
     bool getIsAnimated() const { return isAnimated; }
     bool getIsSolid() const { return isSolid; }
@@ -20,7 +19,6 @@ public:
     virtual void onPlayerInteraction() {}
 
 protected:
-    int color;
     int id;
     bool isAnimated;
     bool isSolid;
