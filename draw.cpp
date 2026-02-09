@@ -5,12 +5,6 @@
 #include "chunk.h"
 
 namespace Game {
-    struct PairHash {
-        size_t operator()(const std::pair<int, int>& p) const {
-            return std::hash<int>()(p.first) ^ (std::hash<int>()(p.second) << 1);
-        }
-    };
-
     // draw viewport field (segment from buffer)
     void drawField(int rows, int cols) {
         std::cout << "\033[2J\033[1;1H\033[?25l";
@@ -58,6 +52,12 @@ namespace Game {
                 if (x == playerX && y == playerY) {
                     displayedChar = '&';
                     color = Colors::WHITE_COLOR;
+                }
+
+                const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
+                if (x == directionPointer.first && y == directionPointer.second) {
+                    std::cout << "\033[38;5;" << Colors::WHITE_COLOR << "m" << displayedChar << "\033[0m" << ' ';
+                    continue;
                 }
 
                 std::cout << "\033[38;5;" << color << "m" << displayedChar << "\033[0m" << ' ';
@@ -173,7 +173,6 @@ namespace Game {
                                 fixCoordOutOfChunk(&lightNearY, &chunkY);
 
                                 if (buf.find({chunkX, chunkY}) != buf.end()) {
-                                    // std::cerr << "4) x: " << chunkX << " y: " << chunkY << " x1: " << lightNearX << " y1: " << lightNearY << std::endl;
                                     c = buf[{chunkX, chunkY}].getCell(lightNearX, lightNearY);
                                 } else continue;
                             }
@@ -205,40 +204,40 @@ namespace Game {
     }
 
     void updateAnimations() {
-        for (auto& entity : entities) {
-            entity->update();
-            int x = entity->getChunkX();
-            int y = entity->getChunkY();
-            entityLayer.at(y).at(x) = entity->getChar();
-        }
-
-        if (lastTick + 50 <= ticks) {
-            lastTick = ticks;
-            for (int y = 0; y < ROWS; y++) {
-                for (int x = 0; x < COLS; x++) {
-                    if (baseLayer.at(y).at(x).getChar() == '$') {
-                        isItalicLayer.at(y).at(x) = !isItalicLayer[y][x];
-                        continue;
-                    }
-                    isItalicLayer.at(y).at(x) = false;
-                }
-            }
-        }
-
-        lightShader();
+        // for (auto& entity : entities) {
+        //     entity->update();
+        //     int x = entity->getChunkX();
+        //     int y = entity->getChunkY();
+        //     entityLayer.at(y).at(x) = entity->getChar();
+        // }
+        //
+        // if (lastTick + 50 <= ticks) {
+        //     lastTick = ticks;
+        //     for (int y = 0; y < ROWS; y++) {
+        //         for (int x = 0; x < COLS; x++) {
+        //             if (baseLayer.at(y).at(x).getChar() == '$') {
+        //                 isItalicLayer.at(y).at(x) = !isItalicLayer[y][x];
+        //                 continue;
+        //             }
+        //             isItalicLayer.at(y).at(x) = false;
+        //         }
+        //     }
+        // }
+        //
+        // lightShader();
     }
 
     void updateEntityLayer() {
-        for (int y = 0; y < ROWS; y++) {
-            for (int x = 0; x < COLS; x++) {
-                entityLayer.at(y).at(x) = ' ';
-            }
-        }
-        for (const auto& entity : entities) {
-            int x = entity->getChunkX();
-            int y = entity->getChunkY();
-            entityLayer.at(y).at(x) = entity->getChar();
-            colorLayer.at(y).at(x) = entity->getColor();
-        }
+        // for (int y = 0; y < ROWS; y++) {
+        //     for (int x = 0; x < COLS; x++) {
+        //         entityLayer.at(y).at(x) = ' ';
+        //     }
+        // }
+        // for (const auto& entity : entities) {
+        //     int x = entity->getChunkX();
+        //     int y = entity->getChunkY();
+        //     entityLayer.at(y).at(x) = entity->getChar();
+        //     colorLayer.at(y).at(x) = entity->getColor();
+        // }
     }
 }

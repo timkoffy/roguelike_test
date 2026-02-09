@@ -3,13 +3,12 @@
 #include <array>
 
 #include "entity.h"
-#include "game.hpp"
-
+#include "colors.hpp"
 
 namespace Entities {
     class Orc : public Entity {
     public:
-        Orc(int x, int y) : Entity(x, y, 'o', 0, Game::Colors::ENTITY_ORC_COLOR) {
+        Orc(int chunkX, int chunkY) : Entity(chunkX, chunkY, 'o', 0, Colors::ENTITY_ORC_COLOR) {
             isAnimated = true;
             isSolid = false;
 
@@ -20,33 +19,32 @@ namespace Entities {
             lastMovingTick = 0;
         }
 
-        void update() override {
-            if (lastAnimationTick + 75 <= Game::ticks) {
-                lastAnimationTick = Game::ticks;
+        // todo: создать вспомогательный неймспейс с хелпер функциями
+        void update(int ticks) override {
+            if (lastAnimationTick + 75 <= ticks) {
+                lastAnimationTick = ticks;
                 lastFrame = (lastFrame + 1) % framesCount;
                 setChar(frames[lastFrame]);
             }
-
-                srand(chunkX*chunkY + time(nullptr));
-                if (lastMovingTick + (rand() % 200 + 200) <= Game::ticks) {
-                    lastMovingTick = Game::ticks;
-                    const auto newCoords = Game::getCoordinatesInDirection({chunkX, chunkY}, rand() % 4);
-                    if (!Game::isBlockSolid(newCoords, this)) {
-                        chunkX = newCoords.first;
-                        chunkY = newCoords.second;
-                    }
+            srand(x * y + time(nullptr));
+            if (lastMovingTick + (rand() % 200 + 200) <= ticks) {
+                lastMovingTick = ticks;
+                const auto newCoords = Game::getCoordinatesInDirection({x, y}, rand() % 4);
+                if (!Game::isBlockSolid(newCoords, this)) {
+                    x = newCoords.first;
+                    y = newCoords.second;
                 }
+            }
         }
 
-        void onPlayerInteraction() override {
+        void onPlayerInteraction(char ch) override {
             // orc have been pushed by player
-            const auto newCoords = Game::getCoordinatesInDirection({chunkX, chunkY}, Game::direction);
-            char ch = Game::baseLayer.at(newCoords.second).at(newCoords.first).getChar();
+            const auto newCoords = Game::getCoordinatesInDirection({x, y}, Game::direction);
             if (ch != '.' && ch != 'D') {
                 return;
             }
-            chunkX = newCoords.first;
-            chunkY = newCoords.second;
+            x = newCoords.first;
+            y = newCoords.second;
         }
 
     private:

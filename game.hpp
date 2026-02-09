@@ -6,27 +6,17 @@
 #include "entity.h"
 
 namespace Game {
-    struct PairHash;
+    struct PairHash {
+        size_t operator()(const std::pair<int, int>& p) const {
+            return std::hash<int>()(p.first) ^ (std::hash<int>()(p.second) << 1);
+        }
+    };
+
     constexpr int ROWS = 90;
     constexpr int COLS = 90;
     constexpr int VIEWPORT_ROWS = 11;
     constexpr int VIEWPORT_COLS = 21;
     constexpr auto FRAME_TIME = std::chrono::milliseconds(16);
-
-    namespace Colors {
-        constexpr int FIELD_COLOR = 59;
-        constexpr int WALL_COLOR = 102;
-        constexpr int WHITE_COLOR = 15;
-
-        constexpr int LIGHT_SOURCE_COLOR = 226;
-        constexpr int LIGHT_NEAR_COLOR = 172;
-        constexpr int LIGHT_FAR_COLOR = 94;
-
-        constexpr int WALL_LIGHT_NEAR_COLOR = 229;
-        constexpr int WALL_LIGHT_FAR_COLOR = 181;
-
-        constexpr int ENTITY_ORC_COLOR = 72;
-    }
 
     enum Direction {
         UP = 0,
@@ -35,13 +25,9 @@ namespace Game {
         RIGHT
     };
 
-    extern std::array<std::array<Cell, COLS>, ROWS> baseLayer;
-    extern std::array<std::array<char, COLS>, ROWS> entityLayer;
-    extern std::array<std::array<int, COLS>, ROWS> colorLayer;
-    extern std::array<std::array<bool, COLS>, ROWS> isItalicLayer;
-
     extern std::unordered_map<std::pair<int, int>, Chunk, PairHash> buf;
-    extern std::vector<std::unique_ptr<Entity>> entities;
+    extern std::vector<Chunk> chunksEdited;
+    extern int chunkCount;
 
     extern int playerX;
     extern int playerY;
@@ -51,19 +37,19 @@ namespace Game {
 
     // game field functions
     void runTime(int rows, int cols);
-    void readFromFile();
-    void saveToFile();
-    void editByteInFile(int x, int y, char ch);
-    void createInitialField();
-    void createChunk(int chunkX, int chunkY);
+    void placeBlockInFrontOfPlayer(char ch);
+    void destroyBlockInFrontOfPlayer();
 
     // entity functions
     void move(int dir);
     void rotateDirection(bool isClockwise);
-    void placeBlockInFrontOfPlayer(char block);
-    void destroyBlockInFrontOfPlayer();
+    void spawnEntity(int x, int y);
 
     // chunk managing
+    void readFromFile();
+    void saveToFile();
+    void createInitialField();
+    void createChunk(int chunkX, int chunkY);
     void loadChunks();
 
     // rendering functions
@@ -77,6 +63,7 @@ namespace Game {
     // helper functions
     std::pair<int, int> getCoordinatesInDirection(std::pair<int, int> point, int dir);
     std::pair<int, int> getChunkCoords(std::pair<int, int> point);
+    char getCharOnPoint(const std::pair<int, int> &point);
     bool isBlockSolid(std::pair<int, int> point, Entity* thisEntity);
     bool isBlockSolidPlayer(std::pair<int, int> point);
 }

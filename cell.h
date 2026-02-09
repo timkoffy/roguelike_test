@@ -3,29 +3,28 @@
 
 class Cell {
 public:
-    Cell() : chunkX(0), chunkY(0), ch(' '), color(0) {}
-
-    Cell(int x, int y, char ch, int color) : chunkX(x), chunkY(y), ch(ch), color(color) {}
-    Cell(int x, int y, char ch) : chunkX(x), chunkY(y), ch(ch), color(0) {}
+    Cell() : x(0), y(0), ch(' '), color(0) {}
+    Cell(int x, int y, char ch, int color) : x(x), y(y), ch(ch), color(color) {}
+    Cell(int x, int y, char ch) : x(x), y(y), ch(ch), color(0) {}
 
     virtual ~Cell() {}
 
-    int getChunkX() const { return chunkX; }
-    int getChunkY() const { return chunkY; }
+    int getX() const { return x; }
+    int getY() const { return y; }
     char getChar() const { return ch; }
     int getColor() const { return color; }
 
     void setChunkPosition(int newX, int newY) {
-        chunkX = newX;
-        chunkY = newY;
+        x = newX;
+        y = newY;
     }
 
     void setChar(char newChar) { ch = newChar; }
     void setColor(int newColor) { color = newColor; }
 
 protected:
-    int chunkX;
-    int chunkY;
+    int x;
+    int y;
     char ch;
     int color;
 };

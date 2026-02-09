@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(roguelike_test main.cpp
         draw.cpp
         game.cpp
+        chunkManager.cpp
         game.hpp
         cell.h
         entity.h

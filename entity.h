@@ -1,13 +1,12 @@
 #ifndef ROGUELIKE_TEST_ENTITY_H
 #define ROGUELIKE_TEST_ENTITY_H
-#include "cell.h"
 
+#include "cell.h"
 
 class Entity : public Cell {
 public:
-    Entity(int x, int y, char ch, int id, int color)
-        : Cell(x, y, ch, color), id(id), isAnimated(false), isSolid(false) {
-    }
+    Entity(int x, int y, char ch, int color, int id)
+        : Cell(x, y, ch, color), id(id), isAnimated(false), isSolid(false) {}
 
     virtual ~Entity() = default;
 
@@ -15,8 +14,8 @@ public:
     bool getIsAnimated() const { return isAnimated; }
     bool getIsSolid() const { return isSolid; }
 
-    virtual void update() {}
-    virtual void onPlayerInteraction() {}
+    virtual int update(int ticks)  {}
+    virtual void onPlayerInteraction(char ch) {}
 
 protected:
     int id;
