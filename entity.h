@@ -14,7 +14,7 @@ public:
     bool getIsAnimated() const { return isAnimated; }
     bool getIsSolid() const { return isSolid; }
 
-    virtual int update(int ticks)  {}
+    virtual void update(int ticks)  {}
     virtual void onPlayerInteraction(char ch) {}
 
 protected:

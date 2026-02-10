@@ -25,7 +25,7 @@ namespace Game {
     int ticks = 0;
     int lastTick = 0;
 
-    void runTime(int rows, int cols) {
+    void runTime(const int rows, const int cols) {
         std::cout << "\033[2J\033[1;1H" << "press any key...";
 
         // readFromFile();
@@ -69,17 +69,16 @@ namespace Game {
         }
     }
 
-    void move(int dir) {
+    void move(const int dir) {
         direction = dir;
-        auto newCoords = getCoordinatesInDirection({playerX, playerY}, dir);
-
-        if (!isBlockSolidPlayer(newCoords)) {
+        if (const auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
+            !isBlockSolidPlayer(newCoords)) {
             playerX = newCoords.first;
             playerY = newCoords.second;
         }
     }
 
-    void rotateDirection(bool isClockwise) {
+    void rotateDirection(const bool isClockwise) {
         if (isClockwise) {
             direction = (4 + direction - 1) % 4;
             return;
@@ -90,7 +89,7 @@ namespace Game {
 
     }
 
-    void placeBlockInFrontOfPlayer(char ch) {
+    void placeBlockInFrontOfPlayer(const char ch) {
         auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
         int x = newCoords.first, y = newCoords.second;
         auto chunkCoords = getChunkCoords(newCoords);
@@ -116,7 +115,7 @@ namespace Game {
     }
 
     // helper functions
-    std::pair<int, int> getCoordinatesInDirection(std::pair<int, int> point, int dir) {
+    std::pair<int, int> getCoordinatesInDirection(const std::pair<int, int>& point, const int dir) {
         int x = point.first,
             y = point.second;
 
@@ -131,7 +130,7 @@ namespace Game {
         return {x, y};
     }
 
-    std::pair<int, int> getChunkCoords(std::pair<int, int> point) {
+    std::pair<int, int> getChunkCoords(const std::pair<int, int>& point) {
         int x = point.first;
         int y = point.second;
 
@@ -157,36 +156,43 @@ namespace Game {
             ch = buf[{chunkX, chunkY}].getCell(x % CHUNK_SIZE, y % CHUNK_SIZE)->getChar();
         } else ch = ' ';
 
+        std::cout << "\nDEBUG: Checking collision at (" << point.first
+              << ", " << point.second << ") char: '" << ch
+              << "' player at (" << playerX << ", " << playerY << ")" << std::endl;
+
         return ch;
     }
 
-    bool isBlockSolid(std::pair<int, int> point, Entity* thisEntity) {
-        char ch = getCharOnPoint(point);
-
-        if (ch != '.' || (playerX == point.first && playerY == point.second))
+    bool isBlockSolid(const std::pair<int, int> &point, const Entity* thisEntity) {
+        if (char ch = getCharOnPoint(point);
+            ch != '.' || (playerX == point.first && playerY == point.second))
             return true;
 
-        for (const auto& entity : entities) {
-            if (entity.get() == thisEntity) continue;
-
-            if (point.first == entity->getX() && point.second == entity->getY())
-                return true;
-        } return false;
+        // for (const auto& entity : entities) {
+        //     if (entity.get() == thisEntity) continue;
+        //
+        //     if (point.first == entity->getX() && point.second == entity->getY())
+        //         return true;
+        // }
+        return false;
     }
 
-    bool isBlockSolidPlayer(std::pair<int, int> point) {
-        auto coords = getCoordinatesInDirection(point, direction);
-        char ch = getCharOnPoint(coords);
+    bool isBlockSolidPlayer(const std::pair<int, int>& point) {
+        const char ch = getCharOnPoint(point);
 
-        if (ch != '.' && ch != 'D' && ch != ' ')
+        if (ch != '.' && ch != 'D')
             return true;
 
-        for (const auto& entity : entities) {
-            if (point.first == entity->getX() && point.second == entity->getY()) {
-                entity->onPlayerInteraction(ch);
-                if (entity->getIsSolid())
-                    return true;
-            }
-        } return false;
+        auto chunkCoords = getChunkCoords(point);
+        if (buf.find(chunkCoords) == buf.end()) {
+            return false;
+        }
+
+        // if (auto entity = buf[chunkCoords].getEntityOnPoint(point); entity != nullptr) {
+        //     entity->onPlayerInteraction(ch);
+        //     if (entity->getIsSolid())
+        //         return true;
+        // }
+        return false;
     }
 }

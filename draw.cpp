@@ -56,8 +56,7 @@ namespace Game {
 
                 const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
                 if (x == directionPointer.first && y == directionPointer.second) {
-                    std::cout << "\033[38;5;" << Colors::WHITE_COLOR << "m" << displayedChar << "\033[0m" << ' ';
-                    continue;
+                    color = Colors::WHITE_COLOR;
                 }
 
                 std::cout << "\033[38;5;" << color << "m" << displayedChar << "\033[0m" << ' ';

@@ -16,16 +16,22 @@ public:
 
     int getX() const { return x; }
     int getY() const { return y; }
-    Cell* getCell(const int cellX, const int cellY) { return &cells.at(cellY).at(cellX); }
+    Cell* getCell(const int cellX, const int cellY) {
+        return &cells.at(cellY).at(cellX);
+    }
+    // Entity* getEntityOnPoint(const std::pair<int, int>& point) const {
+    //     for (const auto& entity : entities) {
+    //         if (entity->getX() == point.first && entity->getY() == point.second) {
+    //             return entity.get();
+    //         }
+    //     } return nullptr;
+    // }
 
     void setPosition(int newX, int newY) {
         x = newX; y = newY;
     }
     void setCell(const Cell& cell) {
         cells.at(cell.getY()).at(cell.getX()) = cell;
-    }
-    void addEntity(const Entity& entity) {
-        entities.emplace_back(entity);
     }
 
     void addEntity(Entity entity);

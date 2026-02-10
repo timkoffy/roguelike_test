@@ -21,30 +21,30 @@ namespace Entities {
 
         // todo: создать вспомогательный неймспейс с хелпер функциями
         void update(int ticks) override {
-            if (lastAnimationTick + 75 <= ticks) {
-                lastAnimationTick = ticks;
-                lastFrame = (lastFrame + 1) % framesCount;
-                setChar(frames[lastFrame]);
-            }
-            srand(x * y + time(nullptr));
-            if (lastMovingTick + (rand() % 200 + 200) <= ticks) {
-                lastMovingTick = ticks;
-                const auto newCoords = Game::getCoordinatesInDirection({x, y}, rand() % 4);
-                if (!Game::isBlockSolid(newCoords, this)) {
-                    x = newCoords.first;
-                    y = newCoords.second;
-                }
-            }
+            // if (lastAnimationTick + 75 <= ticks) {
+            //     lastAnimationTick = ticks;
+            //     lastFrame = (lastFrame + 1) % framesCount;
+            //     setChar(frames[lastFrame]);
+            // }
+            // srand(x * y + time(nullptr));
+            // if (lastMovingTick + (rand() % 200 + 200) <= ticks) {
+            //     lastMovingTick = ticks;
+            //     const auto newCoords = Game::getCoordinatesInDirection({x, y}, rand() % 4);
+            //     if (!Game::isBlockSolid(newCoords, this)) {
+            //         x = newCoords.first;
+            //         y = newCoords.second;
+            //     }
+            // }
         }
 
         void onPlayerInteraction(char ch) override {
             // orc have been pushed by player
-            const auto newCoords = Game::getCoordinatesInDirection({x, y}, Game::direction);
-            if (ch != '.' && ch != 'D') {
-                return;
-            }
-            x = newCoords.first;
-            y = newCoords.second;
+            // const auto newCoords = Game::getCoordinatesInDirection({x, y}, Game::direction);
+            // if (ch != '.' && ch != 'D') {
+            //     return;
+            // }
+            // x = newCoords.first;
+            // y = newCoords.second;
         }
 
     private:
