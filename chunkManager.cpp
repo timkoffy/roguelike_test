@@ -107,6 +107,7 @@ namespace Game {
         // saveToFile();
     }
 
+    // deserialization chunk data
     void readFromFile() {
         // FILE* f = fopen("data.dat", "rb");
         //
@@ -145,6 +146,7 @@ namespace Game {
 
     }
 
+    // serialization chunk data
     void saveToFile() {
         // FILE* f = fopen("data.dat", "wb");
         //
@@ -187,12 +189,14 @@ namespace Game {
 
         std::fstream file("data.dat", std::ios::in | std::ios::out | std::ios::binary);
 
+        // todo: add player data serialization
         if (!file.is_open()) {
             std::ofstream create("data.dat", std::ios::binary);
             create.close();
             file.open("data.dat", std::ios::in | std::ios::out | std::ios::binary);
         }
 
+        // todo: add write to chunkData file with offsets by chunk coords;
         for (const auto& chunkCoords : chunksEdited) {
             Chunk* chunk = &buf.at(chunkCoords);
             int offset = buf.at(chunkCoords).getOffset();
