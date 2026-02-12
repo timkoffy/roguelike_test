@@ -5,7 +5,7 @@
 #include "entities.h"
 #include "entity.h"
 
-constexpr int CHUNK_SIZE = 16;
+constexpr int CHUNK_SIZE = 4;
 
 class Chunk {
 public:
@@ -16,7 +16,10 @@ public:
 
     int getX() const { return x; }
     int getY() const { return y; }
-    Cell* getCell(const int cellX, const int cellY) {
+    Cell* getCell(int cellX, int cellY) {
+        if (cellX < 0 || cellX >= CHUNK_SIZE || cellY < 0 || cellY >= CHUNK_SIZE) {
+            return nullptr;
+        }
         return &cells.at(cellY).at(cellX);
     }
     // Entity* getEntityOnPoint(const std::pair<int, int>& point) const {

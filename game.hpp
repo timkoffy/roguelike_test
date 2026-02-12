@@ -63,7 +63,6 @@ namespace Game {
     // helper functions
     std::pair<int, int> getChunkCoords(const std::pair<int, int>& point);
     std::pair<int, int> getCoordinatesInDirection(const std::pair<int, int>& point, int dir);
-
     char getCharOnPoint(std::pair<int, int>& point);
     Cell* getCellFromChunk(Chunk& chunk, int x, int y);
     bool isBlockSolid(std::pair<int, int>& point, const Entity* thisEntity);

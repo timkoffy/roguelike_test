@@ -196,6 +196,19 @@ namespace Game {
         chunk.setPosition(chunkX, chunkY);
         buf[{chunkX, chunkY}] = chunk;
         chunkCount++;
+        lightShader();
+    }
+
+    std::pair<int, int> getChunkCoords(const std::pair<int, int>& point) {
+        const auto [x, y] = point;
+
+        int chunkX = x / CHUNK_SIZE;
+        if (x < 0 && x % CHUNK_SIZE != 0) chunkX--;
+
+        int chunkY = y / CHUNK_SIZE;
+        if (y < 0 && y % CHUNK_SIZE != 0) chunkY--;
+
+        return {chunkX, chunkY};
     }
 
     void fixCoordOutOfChunk(int* coord, int* chunkCoord) {
@@ -213,15 +226,11 @@ namespace Game {
         int chunkX = chunk.getX();
         int chunkY = chunk.getY();
 
-        try {
-            return chunk.getCell(x, y);
-        } catch (std::out_of_range&) {
-            fixCoordOutOfChunk(&x, &chunkX);
-            fixCoordOutOfChunk(&y, &chunkY);
+        fixCoordOutOfChunk(&x, &chunkX);
+        fixCoordOutOfChunk(&y, &chunkY);
 
-            if (buf.contains({chunkX, chunkY})) {
-                return buf.at({chunkX, chunkY}).getCell(x, y);
-            } return nullptr;
-        }
+        if (buf.contains({chunkX, chunkY})) {
+            return buf.at({chunkX, chunkY}).getCell(x, y);
+        } return nullptr;
     }
 }
