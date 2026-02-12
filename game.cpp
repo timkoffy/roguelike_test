@@ -71,8 +71,10 @@ namespace Game {
 
     void move(const int dir) {
         direction = dir;
-        if (const auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
-            !isBlockSolidPlayer(newCoords)) {
+        std::pair playerPos{playerX, playerY};
+        const auto newCoords = getCoordinatesInDirection(playerPos, direction);
+
+        if (!isBlockSolidPlayer(newCoords)) {
             playerX = newCoords.first;
             playerY = newCoords.second;
         }
@@ -85,39 +87,50 @@ namespace Game {
         } direction = (direction + 1) % 4;
     }
 
-    void spawnEntity(int x, int y) {
-
-    }
-
     void placeBlockInFrontOfPlayer(const char ch) {
-        auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
-        int x = newCoords.first, y = newCoords.second;
-        auto chunkCoords = getChunkCoords(newCoords);
-        Cell* c = buf[{chunkCoords.first, chunkCoords.second}].getCell(x % CHUNK_SIZE, y % CHUNK_SIZE);
+        const std::pair playerPos{playerX, playerY};
+        const auto [x, y] = getCoordinatesInDirection(playerPos, direction);
 
-        if (c->getChar() != '.')
+        const std::pair newCoords{x, y};
+        const auto [chunkX, chunkY] = getChunkCoords(newCoords);
+
+        if (!buf.contains({chunkX, chunkY}))
             return;
 
-        c->setChar(ch);
-        c->setColor(Colors::WALL_COLOR);
+        Cell* cell = buf.at({chunkX, chunkY}).getCell(x % CHUNK_SIZE, y % CHUNK_SIZE);
+
+        if (cell->getChar() != '.')
+            return;
+
+        cell->setChar(ch);
+        cell->setColor(Colors::WALL_COLOR);
         lightShader();
     }
 
     void destroyBlockInFrontOfPlayer() {
-        auto newCoords = getCoordinatesInDirection({playerX, playerY}, direction);
-        int x = newCoords.first, y = newCoords.second;
-        auto chunkCoords = getChunkCoords(newCoords);
-        Cell* c = buf[{chunkCoords.first, chunkCoords.second}].getCell(x % CHUNK_SIZE, y % CHUNK_SIZE);
+        const std::pair playerPos{playerX, playerY};
+        const auto [x, y] = getCoordinatesInDirection(playerPos, direction);
 
-        c->setChar('.');
-        c->setColor(Colors::FIELD_COLOR);
+        const std::pair newCoords{x, y};
+        const auto [chunkX, chunkY] = getChunkCoords(newCoords);
+
+        if (!buf.contains({chunkX, chunkY}))
+            return;
+
+        Cell* cell = buf.at({chunkX, chunkY}).getCell(x % CHUNK_SIZE, y % CHUNK_SIZE);
+
+        cell->setChar('.');
+        cell->setColor(Colors::FIELD_COLOR);
         lightShader();
+    }
+
+    void spawnEntity(int x, int y) {
+
     }
 
     // helper functions
     std::pair<int, int> getCoordinatesInDirection(const std::pair<int, int>& point, const int dir) {
-        int x = point.first,
-            y = point.second;
+        auto [x, y] = point;
 
         switch (dir) {
             case 0: y++; break;
@@ -131,8 +144,7 @@ namespace Game {
     }
 
     std::pair<int, int> getChunkCoords(const std::pair<int, int>& point) {
-        int x = point.first;
-        int y = point.second;
+        const auto [x, y] = point;
 
         int chunkX = x / CHUNK_SIZE;
         if (x < 0) chunkX--;
@@ -144,28 +156,25 @@ namespace Game {
     }
 
     char getCharOnPoint(const std::pair<int, int>& point) {
-        int x = point.first;
-        int y = point.second;
-
-        auto chunkCoords = getChunkCoords(point);
-        int chunkX = chunkCoords.first;
-        int chunkY = chunkCoords.second;
+        const auto [x, y] = point;
+        const auto [chunkX, chunkY] = getChunkCoords(point);
 
         char ch;
-        if (buf.find({chunkX, chunkY}) != buf.end()) {
-            ch = buf[{chunkX, chunkY}].getCell(x % CHUNK_SIZE, y % CHUNK_SIZE)->getChar();
+        if (buf.contains({chunkX, chunkY})) {
+            ch = buf.at({chunkX, chunkY}).getCell(x % CHUNK_SIZE, y % CHUNK_SIZE)->getChar();
         } else ch = ' ';
-
-        std::cout << "\nDEBUG: Checking collision at (" << point.first
-              << ", " << point.second << ") char: '" << ch
-              << "' player at (" << playerX << ", " << playerY << ")" << std::endl;
 
         return ch;
     }
 
-    bool isBlockSolid(const std::pair<int, int> &point, const Entity* thisEntity) {
-        if (char ch = getCharOnPoint(point);
-            ch != '.' || (playerX == point.first && playerY == point.second))
+    bool isBlockSolid(const std::pair<int, int>& point, Entity* thisEntity) {
+        const auto chunkCoords = getChunkCoords(point);
+        if (!buf.contains(chunkCoords)) {
+            return true;
+        }
+
+        const char ch = getCharOnPoint(point);
+        if (ch != '.' || (playerX == point.first && playerY == point.second))
             return true;
 
         // for (const auto& entity : entities) {
@@ -178,15 +187,14 @@ namespace Game {
     }
 
     bool isBlockSolidPlayer(const std::pair<int, int>& point) {
-        const char ch = getCharOnPoint(point);
-
-        if (ch != '.' && ch != 'D')
-            return true;
-
-        auto chunkCoords = getChunkCoords(point);
-        if (buf.find(chunkCoords) == buf.end()) {
+        const auto chunkCoords = getChunkCoords(point);
+        if (!buf.contains(chunkCoords)) {
             return false;
         }
+
+        const char ch = getCharOnPoint(point);
+        if (ch != '.' && ch != 'D')
+            return true;
 
         // if (auto entity = buf[chunkCoords].getEntityOnPoint(point); entity != nullptr) {
         //     entity->onPlayerInteraction(ch);

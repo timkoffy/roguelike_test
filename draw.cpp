@@ -1,5 +1,6 @@
 #include "game.hpp"
 #include <iostream>
+#include <ranges>
 
 #include "cell.h"
 #include "chunk.h"
@@ -25,23 +26,22 @@ namespace Game {
         int rightViewportX = leftViewportX + VIEWPORT_COLS;
         int bottomViewportY = topViewportY + VIEWPORT_ROWS;
 
-        for (int testY = topViewportY; testY < bottomViewportY; testY++) {
-            int y = -testY;
+        for (int negY = topViewportY; negY < bottomViewportY; negY++) {
+            int y = -negY;
             // left side padding
             for (int x = 0; x < cols / 2 - VIEWPORT_COLS; x++)
                 std::cout << ' ';
             // paste buffer
             for (int x = leftViewportX; x < rightViewportX; x++) {
-                auto chunkCoords = getChunkCoords({x, y});
-                int chunkX = chunkCoords.first;
-                int chunkY = chunkCoords.second;
+                std::pair coords{x, y};
+                const auto [chunkX, chunkY] = getChunkCoords(coords);
                 char displayedChar;
                 int color;
 
-                if (buf.find({chunkX, chunkY}) != buf.end()) {
-                    int cellChunkX = (x - (chunkX * CHUNK_SIZE));
-                    int cellChunkY = (y - (chunkY * CHUNK_SIZE));
-                    Cell* displayedCell = buf[{chunkX, chunkY}].getCell(cellChunkX, cellChunkY);
+                if (buf.contains({chunkX, chunkY})) {
+                    const int cellLocalX = x - (chunkX * CHUNK_SIZE);
+                    const int cellLocalY = y - (chunkY * CHUNK_SIZE);
+                    const Cell* displayedCell = buf.at({chunkX, chunkY}).getCell(cellLocalX, cellLocalY);
                     displayedChar = displayedCell->getChar();
                     color = displayedCell->getColor();
                 } else {
@@ -54,8 +54,9 @@ namespace Game {
                     color = Colors::WHITE_COLOR;
                 }
 
-                const auto& directionPointer = getCoordinatesInDirection({playerX, playerY}, direction);
-                if (x == directionPointer.first && y == directionPointer.second) {
+                std::pair playerPos{playerX, playerY};
+                const auto [dirPointerX, dirPointerY] = getCoordinatesInDirection(playerPos, direction);
+                if (x == dirPointerX && y == dirPointerY) {
                     color = Colors::WHITE_COLOR;
                 }
 
@@ -98,10 +99,10 @@ namespace Game {
     }
 
     void resetShader() {
-        for (auto& chunk : buf) {
+        for (auto& chunk: buf | std::views::values) {
             for (int y = 0; y < CHUNK_SIZE; y++) {
                 for (int x = 0; x < CHUNK_SIZE; x++) {
-                    Cell* c = chunk.second.getCell(x, y);
+                    Cell* c = chunk.getCell(x, y);
                     c->setColor(Colors::FIELD_COLOR);
                 }
             }
@@ -110,11 +111,12 @@ namespace Game {
 
     // shader for walls
     void wallShader() {
-        for (auto& chunk : buf) {
+        for (auto& chunk: buf | std::views::values) {
             for (int y = 0; y < CHUNK_SIZE; y++) {
                 for (int x = 0; x < CHUNK_SIZE; x++) {
-                    if (Cell* c = chunk.second.getCell(x, y); c->getChar() != '.') {
-                        c->setColor(Colors::WALL_COLOR);
+                    Cell* cell = chunk.getCell(x, y);
+                    if (cell->getChar() != '.') {
+                        cell->setColor(Colors::WALL_COLOR);
                     }
                 }
             }
@@ -125,80 +127,47 @@ namespace Game {
     void lightShader() {
         resetShader();
         wallShader();
-        for (auto& chunk : buf) {
+        for (auto& chunk: buf | std::views::values) {
             for (int y = 0; y < CHUNK_SIZE; y++) {
                 for (int x = 0; x < CHUNK_SIZE; x++) {
-                    if (chunk.second.getCell(x, y)->getChar() == '$') {
+                    if (chunk.getCell(x, y)->getChar() == '$') {
                         for (int k = 0; k < 25; k++) {
-                            int lightFarY = y - 2 + (k - k%5) / 5;
-                            int lightFarX = x - 2 + k % 5;
-                            int chunkX = chunk.second.getX();
-                            int chunkY = chunk.second.getY();
-                            Cell* c;
+                            const int lightFarX = x - 2 + k % 5;
+                            const int lightFarY = y - 2 + (k - k % 5) / 5;
 
-                            try {
-                                c = chunk.second.getCell(lightFarX, lightFarY);
-                            } catch (std::out_of_range) {
-                                fixCoordOutOfChunk(&lightFarX, &chunkX);
-                                fixCoordOutOfChunk(&lightFarY, &chunkY);
+                            Cell* cell = getCellFromChunk(chunk, lightFarX, lightFarY);
+                            if (!cell) continue;
 
-                                if (buf.find({chunkX, chunkY}) != buf.end()) {
-                                    c = buf[{chunkX, chunkY}].getCell(lightFarX, lightFarY);
-                                } else continue;
-                            }
-
-                            char ch = c->getChar();
+                            const char ch = cell->getChar();
                             if (ch == '$') continue;
                             if (ch != '.') {
-                                if (c->getColor() != Colors::WALL_LIGHT_NEAR_COLOR)
-                                    c->setColor(Colors::WALL_LIGHT_FAR_COLOR);
+                                if (cell->getColor() != Colors::WALL_LIGHT_NEAR_COLOR)
+                                    cell->setColor(Colors::WALL_LIGHT_FAR_COLOR);
                                 continue;
                             }
-                            if (c->getColor() != Colors::LIGHT_NEAR_COLOR)
-                                c->setColor(Colors::LIGHT_FAR_COLOR);
+                            if (cell->getColor() != Colors::LIGHT_NEAR_COLOR)
+                                cell->setColor(Colors::LIGHT_FAR_COLOR);
                         }
 
                         for (int k = 0; k < 9; k++) {
-                            int lightNearY = y - 1 + (k - k%3) / 3;
-                            int lightNearX = x - 1 + k % 3;
-                            int chunkX = chunk.second.getX();
-                            int chunkY = chunk.second.getY();
-                            Cell* c;
+                            const int lightNearX = x - 1 + k % 3;
+                            const int lightNearY = y - 1 + (k - k % 3) / 3;
 
-                            try {
-                                c = chunk.second.getCell(lightNearX, lightNearY);
-                            } catch (std::out_of_range) {
-                                fixCoordOutOfChunk(&lightNearX, &chunkX);
-                                fixCoordOutOfChunk(&lightNearY, &chunkY);
+                            Cell* cell = getCellFromChunk(chunk, lightNearX, lightNearY);
+                            if (!cell) continue;
 
-                                if (buf.find({chunkX, chunkY}) != buf.end()) {
-                                    c = buf[{chunkX, chunkY}].getCell(lightNearX, lightNearY);
-                                } else continue;
-                            }
-
-                            char ch = c->getChar();
+                            const char ch = cell->getChar();
                             if (ch == '$') continue;
                             if (ch != '.') {
-                                c->setColor(Colors::WALL_LIGHT_NEAR_COLOR);
+                                cell->setColor(Colors::WALL_LIGHT_NEAR_COLOR);
                                 continue;
-                            } c->setColor(Colors::LIGHT_NEAR_COLOR);
+                            } cell->setColor(Colors::LIGHT_NEAR_COLOR);
                         }
 
-                        chunk.second.getCell(x, y)->setColor(Colors::LIGHT_SOURCE_COLOR);
+                        chunk.getCell(x, y)->setColor(Colors::LIGHT_SOURCE_COLOR);
                     }
                 }
             }
-        }
-    }
-
-    void fixCoordOutOfChunk(int* coord, int* chunkCoord) {
-        if (*coord < 0) {
-            *coord += CHUNK_SIZE;
-            (*chunkCoord)--;
-        }
-        else if (*coord >= CHUNK_SIZE) {
-            *coord = *coord % CHUNK_SIZE;
-            (*chunkCoord)++;
         }
     }
 

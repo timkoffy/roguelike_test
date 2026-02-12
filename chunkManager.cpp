@@ -194,4 +194,31 @@ namespace Game {
         buf[{chunkX, chunkY}] = chunk;
         chunkCount++;
     }
+
+    void fixCoordOutOfChunk(int* coord, int* chunkCoord) {
+        if (*coord < 0) {
+            *coord += CHUNK_SIZE;
+            (*chunkCoord)--;
+        }
+        else if (*coord >= CHUNK_SIZE) {
+            *coord = *coord % CHUNK_SIZE;
+            (*chunkCoord)++;
+        }
+    }
+
+    Cell* getCellFromChunk(Chunk& chunk, int x, int y) {
+        int chunkX = chunk.getX();
+        int chunkY = chunk.getY();
+
+        try {
+            return chunk.getCell(x, y);
+        } catch (std::out_of_range&) {
+            fixCoordOutOfChunk(&x, &chunkX);
+            fixCoordOutOfChunk(&y, &chunkY);
+
+            if (buf.contains({chunkX, chunkY})) {
+                return buf.at({chunkX, chunkY}).getCell(x, y);
+            } return nullptr;
+        }
+    }
 }

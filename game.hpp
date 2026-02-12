@@ -61,9 +61,11 @@ namespace Game {
     void updateEntityLayer();
 
     // helper functions
-    std::pair<int, int> getCoordinatesInDirection(const std::pair<int, int> &point, int dir);
-    std::pair<int, int> getChunkCoords(const std::pair<int, int> &point);
-    char getCharOnPoint(const std::pair<int, int> &point);
-    bool isBlockSolid(const std::pair<int, int> &point, const Entity* thisEntity);
-    bool isBlockSolidPlayer(const std::pair<int, int> &point);
+    std::pair<int, int> getChunkCoords(const std::pair<int, int>& point);
+    std::pair<int, int> getCoordinatesInDirection(const std::pair<int, int>& point, int dir);
+
+    char getCharOnPoint(std::pair<int, int>& point);
+    Cell* getCellFromChunk(Chunk& chunk, int x, int y);
+    bool isBlockSolid(std::pair<int, int>& point, const Entity* thisEntity);
+    bool isBlockSolidPlayer(const std::pair<int, int>& point);
 }
