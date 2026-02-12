@@ -63,7 +63,7 @@ namespace Game {
                 std::cout << "\033[38;5;" << color << "m" << displayedChar << "\033[0m" << ' ';
             } std::cout << '\n';
         }
-        std::cout.flush();
+        // std::cout.flush();
         //
         // for (int y = topViewportY; y < bottomViewportY; y++) {
         //     // left side padding

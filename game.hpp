@@ -16,7 +16,7 @@ namespace Game {
     constexpr int COLS = 90;
     constexpr int VIEWPORT_ROWS = 11;
     constexpr int VIEWPORT_COLS = 21;
-    constexpr auto FRAME_TIME = std::chrono::milliseconds(16);
+    constexpr auto FRAME_TIME = std::chrono::milliseconds(16); // 16 = 60fps
 
     enum Direction {
         UP = 0,

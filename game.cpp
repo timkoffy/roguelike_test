@@ -64,6 +64,8 @@ namespace Game {
             drawField(rows, cols);
             const auto end = std::chrono::high_resolution_clock::now();
             const auto delta = end - start;
+            std::cout << delta << ' ' << chunkCount;
+            std::cout.flush();
 
             std::this_thread::sleep_for(FRAME_TIME - delta);
         }
@@ -105,7 +107,7 @@ namespace Game {
         if (!buf.contains({chunkX, chunkY}))
             return;
 
-        Cell* cell = buf.at({chunkX, chunkY}).getCell(x % CHUNK_SIZE, y % CHUNK_SIZE);
+        Cell* cell = buf.at({chunkX, chunkY}).getCell(x - (chunkX * CHUNK_SIZE), y - (chunkY * CHUNK_SIZE));
 
         if (cell->getChar() != '.')
             return;
@@ -125,7 +127,7 @@ namespace Game {
         if (!buf.contains({chunkX, chunkY}))
             return;
 
-        Cell* cell = buf.at({chunkX, chunkY}).getCell(x % CHUNK_SIZE, y % CHUNK_SIZE);
+        Cell* cell = buf.at({chunkX, chunkY}).getCell(x - (chunkX * CHUNK_SIZE), y - (chunkY * CHUNK_SIZE));
 
         cell->setChar('.');
         cell->setColor(Colors::FIELD_COLOR);
@@ -187,7 +189,6 @@ namespace Game {
         if (!buf.contains(chunkCoords)) {
             return false;
         }
-
 
         const char ch = getCharOnPoint(point);
         if (ch != '.' && ch != 'D') {
