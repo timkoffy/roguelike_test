@@ -67,4 +67,5 @@ namespace Game {
     Cell* getCellFromChunk(Chunk& chunk, int x, int y);
     bool isBlockSolid(std::pair<int, int>& point, const Entity* thisEntity);
     bool isBlockSolidPlayer(const std::pair<int, int>& point);
+    void writeInt32(std::fstream* file, int value);
 }

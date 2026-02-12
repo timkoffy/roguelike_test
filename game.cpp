@@ -2,6 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include <cmath>
+#include <fstream>
 #include <thread>
 #include <unordered_map>
 
@@ -189,5 +190,16 @@ namespace Game {
         //         return true;
         // }
         return false;
+    }
+
+    void writeInt32(std::fstream* file, int value) {
+        char byte = (unsigned char)(value >> 24);
+        file->write(&byte, 1);
+        byte = (unsigned char)(value >> 16);
+        file->write(&byte, 1);
+        byte = (unsigned char)(value >> 8);
+        file->write(&byte, 1);
+        byte = (unsigned char)(value);
+        file->write(&byte, 1);
     }
 }
