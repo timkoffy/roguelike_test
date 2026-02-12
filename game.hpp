@@ -12,10 +12,8 @@ namespace Game {
         }
     };
 
-    constexpr int ROWS = 90;
-    constexpr int COLS = 90;
-    constexpr int VIEWPORT_ROWS = 11;
-    constexpr int VIEWPORT_COLS = 21;
+    constexpr int VIEWPORT_ROWS = 15; // 11 canon
+    constexpr int VIEWPORT_COLS = VIEWPORT_ROWS * 2 - 1;
     constexpr auto FRAME_TIME = std::chrono::milliseconds(16); // 16 = 60fps
 
     enum Direction {
@@ -25,15 +23,17 @@ namespace Game {
         RIGHT
     };
 
-    extern std::unordered_map<std::pair<int, int>, Chunk, PairHash> buf;
-    extern std::vector<Chunk> chunksEdited;
-    extern int chunkCount;
+    inline std::unordered_map<std::pair<int, int>, Chunk, PairHash> buf;
+    inline std::vector<std::pair<int, int>> chunksEdited;
+    inline int chunkCount;
 
-    extern int playerX;
-    extern int playerY;
-    extern int direction;
-    extern int ticks;
-    extern int lastTick;
+    inline std::vector<std::unique_ptr<Entity>> entities;
+
+    inline int playerX;
+    inline int playerY;
+    inline int direction;
+    inline int ticks;
+    inline int lastTick;
 
     // game field functions
     void runTime(int rows, int cols);

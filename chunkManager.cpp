@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "game.hpp"
 
 namespace Game {
@@ -88,16 +90,16 @@ namespace Game {
         // //     } std::cout << '\n';
         // // }
 
-        for (int dx = -2; dx <= 2; dx++) {
-            for (int dy = -2; dy <= 2; dy++) {
-                createChunk(dx, dy);
+        constexpr int n = 3;
+
+        for (int x = -n; x <= n; x++) {
+            for (int y = -n; y <= n; y++) {
+                createChunk(x, y);
             }
         }
 
-        Cell c(0, 3, '$');
+        const Cell c(0, 3, '$');
         buf[{0, 0}].setCell(c);
-        // Cell c1(15, 2, '$');
-        // buf[{0, 0}].setCell(c1);
 
         playerX = 0;
         playerY = 0;
@@ -140,6 +142,7 @@ namespace Game {
         // }
         //
         // fclose(f);
+
     }
 
     void saveToFile() {
@@ -181,6 +184,47 @@ namespace Game {
         // entityId = -1;
         // fwrite(&entityId, sizeof(int), 1, f);
         // fclose(f);
+
+        std::fstream file("data.dat", std::ios::in | std::ios::out | std::ios::binary);
+
+        if (!file.is_open()) {
+            std::ofstream create("data.dat", std::ios::binary);
+            create.close();
+            file.open("data.dat", std::ios::in | std::ios::out | std::ios::binary);
+        }
+
+        for (const auto& chunkCoords : chunksEdited) {
+            Chunk* chunk = &buf.at(chunkCoords);
+            int offset = buf.at(chunkCoords).getOffset();
+
+            // write if have not before
+            if (offset == -1) {
+                file.seekp(0, std::ios::end);
+                offset = file.tellp();
+                const auto& cellsData = chunk->getAllCells();
+                for (const auto& cellsRow : cellsData) {
+                    for (const auto& cell : cellsRow) {
+                        const char ch = cell.getChar();
+                        file.write(&ch, sizeof(char));
+                    }
+                }
+                chunk->setOffset(offset);
+            }
+            // write if already exist in file
+            else {
+                file.seekp(offset, std::ios::beg);
+
+                const auto& cellsData = chunk->getAllCells();
+                for (const auto& cellsRow : cellsData) {
+                    for (const auto& cell : cellsRow) {
+                        const char ch = cell.getChar();
+                        file.write(&ch, sizeof(char));
+                    }
+                }
+            }
+        }
+        file.close();
+        chunksEdited.clear();
     }
 
     void createChunk(int chunkX, int chunkY) {

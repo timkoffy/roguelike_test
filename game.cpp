@@ -12,19 +12,6 @@
 #include "colors.hpp"
 
 namespace Game {
-    std::array<std::array<char, COLS>, ROWS> entityLayer {' '};
-    std::vector<std::unique_ptr<Entity>> entities;
-
-    std::unordered_map<std::pair<int, int>, Chunk, PairHash> buf;
-    std::vector<Chunk> chunksEdited;
-    int chunkCount = 0;
-
-    int playerX = 0;
-    int playerY = 0;
-    int direction = 0;
-    int ticks = 0;
-    int lastTick = 0;
-
     void runTime(const int rows, const int cols) {
         std::cout << "\033[2J\033[1;1H" << "press any key...";
 
@@ -64,8 +51,8 @@ namespace Game {
             drawField(rows, cols);
             const auto end = std::chrono::high_resolution_clock::now();
             const auto delta = end - start;
-            std::cout << delta << ' ' << chunkCount;
-            std::cout.flush();
+            // std::cout << delta << ' ' << chunkCount;
+            // std::cout.flush();
 
             std::this_thread::sleep_for(FRAME_TIME - delta);
         }
@@ -73,10 +60,8 @@ namespace Game {
 
     void move(const int dir) {
         direction = dir;
-        std::pair playerPos{playerX, playerY};
+        const std::pair playerPos{playerX, playerY};
         const auto newCoords = getCoordinatesInDirection(playerPos, direction);
-
-        printf("move\n");
 
         std::pair chunkCoords = getChunkCoords(newCoords);
         if (!buf.contains(chunkCoords)) {
@@ -84,7 +69,6 @@ namespace Game {
         }
 
         if (!isBlockSolidPlayer(newCoords)) {
-            printf("move 1\n");
             playerX = newCoords.first;
             playerY = newCoords.second;
         }
@@ -107,7 +91,9 @@ namespace Game {
         if (!buf.contains({chunkX, chunkY}))
             return;
 
-        Cell* cell = buf.at({chunkX, chunkY}).getCell(x - (chunkX * CHUNK_SIZE), y - (chunkY * CHUNK_SIZE));
+        const int cellLocalX = x - chunkX * CHUNK_SIZE;
+        const int cellLocalY = y - chunkY * CHUNK_SIZE;
+        Cell* cell = buf.at({chunkX, chunkY}).getCell(cellLocalX, cellLocalY);
 
         if (cell->getChar() != '.')
             return;
@@ -158,7 +144,9 @@ namespace Game {
         const auto [chunkX, chunkY] = getChunkCoords(point);
 
         if (buf.contains({chunkX, chunkY})) {
-            Cell* cell = buf.at({chunkX, chunkY}).getCell(x - (chunkX * CHUNK_SIZE), y - (chunkY * CHUNK_SIZE));
+            const int cellLocalX = x - chunkX * CHUNK_SIZE;
+            const int cellLocalY = y - chunkY * CHUNK_SIZE;
+            Cell* cell = buf.at({chunkX, chunkY}).getCell(cellLocalX, cellLocalY);
             if (cell) {
                 return cell->getChar();
             }

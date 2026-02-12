@@ -6,9 +6,9 @@
 #include "colors.hpp"
 
 namespace Entities {
-    class Orc : public Entity {
+    class Orc final : public Entity {
     public:
-        Orc(int chunkX, int chunkY) : Entity(chunkX, chunkY, 'o', 0, Colors::ENTITY_ORC_COLOR) {
+        Orc(const int chunkX, const int chunkY) : Entity(chunkX, chunkY, 'o', 0, Colors::ENTITY_ORC_COLOR) {
             isAnimated = true;
             isSolid = false;
 
@@ -19,7 +19,6 @@ namespace Entities {
             lastMovingTick = 0;
         }
 
-        // todo: создать вспомогательный неймспейс с хелпер функциями
         void update(int ticks) override {
             // if (lastAnimationTick + 75 <= ticks) {
             //     lastAnimationTick = ticks;
@@ -49,7 +48,7 @@ namespace Entities {
 
     private:
         int framesCount;
-        std::array<char, 2> frames;
+        std::array<char, 2> frames{};
         int lastFrame;
         int lastAnimationTick;
         int lastMovingTick;

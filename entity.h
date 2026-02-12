@@ -5,14 +5,14 @@
 
 class Entity : public Cell {
 public:
-    Entity(int x, int y, char ch, int color, int id)
+    Entity(const int x, const int y, const char ch, const int color, const int id)
         : Cell(x, y, ch, color), id(id), isAnimated(false), isSolid(false) {}
 
-    virtual ~Entity() = default;
+    ~Entity() override = default;
 
-    int getId() const { return id; }
-    bool getIsAnimated() const { return isAnimated; }
-    bool getIsSolid() const { return isSolid; }
+    [[nodiscard]] int getId() const { return id; }
+    [[nodiscard]] bool getIsAnimated() const { return isAnimated; }
+    [[nodiscard]] bool getIsSolid() const { return isSolid; }
 
     virtual void update(int ticks)  {}
     virtual void onPlayerInteraction(char ch) {}

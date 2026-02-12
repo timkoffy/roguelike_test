@@ -20,11 +20,11 @@ namespace Game {
             }
         }
 
-        int leftViewportX = playerX - VIEWPORT_COLS / 2;
-        int topViewportY = -playerY - VIEWPORT_ROWS / 2;
+        const int leftViewportX = playerX - VIEWPORT_COLS / 2;
+        const int topViewportY = -playerY - VIEWPORT_ROWS / 2;
 
-        int rightViewportX = leftViewportX + VIEWPORT_COLS;
-        int bottomViewportY = topViewportY + VIEWPORT_ROWS;
+        const int rightViewportX = leftViewportX + VIEWPORT_COLS;
+        const int bottomViewportY = topViewportY + VIEWPORT_ROWS;
 
         for (int negY = topViewportY; negY < bottomViewportY; negY++) {
             int y = -negY;
@@ -39,8 +39,8 @@ namespace Game {
                 int color;
 
                 if (buf.contains({chunkX, chunkY})) {
-                    const int cellLocalX = x - (chunkX * CHUNK_SIZE);
-                    const int cellLocalY = y - (chunkY * CHUNK_SIZE);
+                    const int cellLocalX = x - chunkX * CHUNK_SIZE;
+                    const int cellLocalY = y - chunkY * CHUNK_SIZE;
                     const Cell* displayedCell = buf.at({chunkX, chunkY}).getCell(cellLocalX, cellLocalY);
                     displayedChar = displayedCell->getChar();
                     color = displayedCell->getColor();
@@ -95,7 +95,7 @@ namespace Game {
         //         std::cout << "\033[38;5;" << color << "m" << displayedChar << "\033[0m" << ' ';
         //     } std::cout << '\n';
         // }
-        // std::cout.flush();
+        std::cout.flush();
     }
 
     void resetShader() {

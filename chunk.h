@@ -7,43 +7,41 @@
 
 constexpr int CHUNK_SIZE = 32;
 
-class Chunk {
+class Chunk final {
 public:
-    Chunk() : x(0), y(0) {}
+    Chunk() = default;
     Chunk(const int x, const int y) : x(x), y(y) {}
 
-    virtual ~Chunk() = default;
+    ~Chunk() = default;
 
-    int getX() const { return x; }
-    int getY() const { return y; }
-    Cell* getCell(int cellX, int cellY) {
+    [[nodiscard]] int getX() const { return x; }
+    [[nodiscard]] int getY() const { return y; }
+    [[nodiscard]] int getOffset() const { return offset; }
+    [[nodiscard]] Cell* getCell(const int cellX, const int cellY) {
         if (cellX < 0 || cellX >= CHUNK_SIZE || cellY < 0 || cellY >= CHUNK_SIZE) {
             return nullptr;
         }
         return &cells.at(cellY).at(cellX);
     }
-    // Entity* getEntityOnPoint(const std::pair<int, int>& point) const {
-    //     for (const auto& entity : entities) {
-    //         if (entity->getX() == point.first && entity->getY() == point.second) {
-    //             return entity.get();
-    //         }
-    //     } return nullptr;
-    // }
+    [[nodiscard]] std::array<std::array<Cell, CHUNK_SIZE>, CHUNK_SIZE> getAllCells() {
+        return cells;
+    }
 
-    void setPosition(int newX, int newY) {
+    void setPosition(const int newX, const int newY) {
         x = newX; y = newY;
     }
     void setCell(const Cell& cell) {
         cells.at(cell.getY()).at(cell.getX()) = cell;
     }
-
-    void addEntity(Entity entity);
+    void setOffset(const int offsetInFile) {
+        offset = offsetInFile;
+    }
 
 protected:
-    int x;
-    int y;
+    int x = 0;
+    int y = 0;
+    int offset = -1;
     std::array<std::array<Cell, CHUNK_SIZE>, CHUNK_SIZE> cells;
-    std::vector<Entity> entities;
 };
 
 
