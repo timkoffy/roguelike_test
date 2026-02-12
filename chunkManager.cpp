@@ -88,13 +88,16 @@ namespace Game {
         // //     } std::cout << '\n';
         // // }
 
-        createChunk(0, 0);
-        createChunk(1, 0);
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dy = -2; dy <= 2; dy++) {
+                createChunk(dx, dy);
+            }
+        }
 
         Cell c(0, 3, '$');
         buf[{0, 0}].setCell(c);
-        Cell c1(15, 2, '$');
-        buf[{0, 0}].setCell(c1);
+        // Cell c1(15, 2, '$');
+        // buf[{0, 0}].setCell(c1);
 
         playerX = 0;
         playerY = 0;

@@ -74,6 +74,12 @@ namespace Game {
         std::pair playerPos{playerX, playerY};
         const auto newCoords = getCoordinatesInDirection(playerPos, direction);
 
+        std::pair chunkCoords = getChunkCoords(newCoords);
+        if (!buf.contains(chunkCoords)) {
+            createChunk(chunkCoords.first, chunkCoords.second);
+            lightShader();
+        }
+
         if (!isBlockSolidPlayer(newCoords)) {
             playerX = newCoords.first;
             playerY = newCoords.second;
