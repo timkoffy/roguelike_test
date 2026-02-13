@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include <unistd.h>
 
 #include "game.hpp"
@@ -91,11 +92,12 @@ namespace Game {
         // //     } std::cout << '\n';
         // // }
 
-        constexpr int n = 3;
+        constexpr int n = 1;
 
         for (int x = -n; x <= n; x++) {
             for (int y = -n; y <= n; y++) {
-                createChunk(x, y);
+                createEmptyChunk(x, y);
+                chunksEdited.emplace_back(x, y);
             }
         }
 
@@ -105,70 +107,82 @@ namespace Game {
         playerX = 0;
         playerY = 0;
         direction = 0;
+
+        // clear previous files
+        std::ofstream fileData;
+        fileData.open("data.dat",  std::ofstream::out | std::ofstream::trunc);
+        fileData.close();
+
+        std::ofstream fileCells;
+        fileCells.open("dataCells.dat",  std::ofstream::out | std::ofstream::trunc);
+        fileCells.close();
+
         saveToFile();
     }
 
     // deserialization chunk data
     void readFromFile() {
-        // FILE* f = fopen("data.dat", "rb");
-        //
-        // // deserialize chunk data
-        // // fread(&chunkCount, sizeof(int), 1, f);
-        // // fread(chunkIndexes.data(), sizeof(int), chunkCount, f);
-        //
-        // // for (int i = 0; i < chunkCount; i++) {
-        // // }
-        //
-        // // deserialize field data
-        // for (int y = 0; y < ROWS; y++) {
-        //     for (int x = 0; x < COLS; x++) {
-        //         char ch;
-        //         fread(&ch, 1, 1, f);
-        //         baseLayer.at(y).at(x) = Cell(x, y, ch, 0);
-        //     }
-        // }
-        //
-        //
-        // // deserialize player data
-        // fread(&playerX, sizeof(int), 1, f);
-        // fread(&playerY, sizeof(int), 1, f);
-        // fread(&direction, sizeof(int), 1, f);
-        //
-        // // deserialize entities
-        // int entityId, entityX, entityY;
-        // while (fread(&entityId, sizeof(int), 1, f) == 1) {
-        //     if (entityId == -1) break;
-        //     fread(&entityX, sizeof(int), 1, f);
-        //     fread(&entityY, sizeof(int), 1, f);
-        //     // entities.emplace_back();
-        // }
-        //
-        // fclose(f);
+        std::fstream fileData("data.dat", std::ios::binary | std::ios::in | std::ios::out);
+        std::fstream fileCells("dataCells.dat", std::ios::binary | std::ios::in | std::ios::out);
 
+        fileData.read(reinterpret_cast<char*>(&playerX), sizeof(int));
+        fileData.read(reinterpret_cast<char*>(&playerY), sizeof(int));
+        fileData.read(reinterpret_cast<char*>(&direction), sizeof(int));
+        fileData.read(reinterpret_cast<char*>(&chunkCount), sizeof(int));
+
+        for (int i = 0; i < chunkCount; i++) {
+            int chunkX;
+            int chunkY;
+            int offset;
+
+            fileData.read(reinterpret_cast<char*>(&chunkX), sizeof(int));
+            fileData.read(reinterpret_cast<char*>(&chunkY), sizeof(int));
+            fileData.read(reinterpret_cast<char*>(&offset), sizeof(int));
+
+            Chunk chunk(chunkX, chunkY, offset);
+            buf[{chunkX, chunkY}] = chunk;
+
+            fileCells.seekg(offset, std::ios::beg);
+            for (int y = 0; y < CHUNK_SIZE; y++) {
+                for (int x = 0; x < CHUNK_SIZE; x++) {
+                    char ch;
+                    fileCells.read(&ch, 1);
+                    buf.at({chunkX, chunkY}).setCell((Cell){x, y, ch});
+                }
+            }
+        }
+
+        fileCells.close();
+        fileData.close();
     }
 
     // serialization chunk data
+
+    // мета игрока / колво чанков / *чанки* / новые чанки
     void saveToFile() {
-        std::fstream fileCells("cellsData.dat", std::ios::in | std::ios::out | std::ios::binary);
-        std::fstream fileData("data.dat", std::ios::in | std::ios::out | std::ios::binary);
-
-        // create cells file if not exist
-        if (!fileCells.is_open()) {
-            std::ofstream create("cellsData.dat", std::ios::binary);
-            create.close();
-            fileCells.open("cellsData.dat", std::ios::in | std::ios::out | std::ios::binary);
+        std::fstream fileData("data.dat", std::ios::binary | std::ios::in | std::ios::out);
+        if (!fileData) {
+            fileData.open("data.dat", std::ios::binary | std::ios::out);
+            fileData.close();
+            fileData.open("data.dat", std::ios::binary | std::ios::in | std::ios::out);
         }
 
-        // create general data file if not exist
-        if (!fileData.is_open()) {
-            std::ofstream create("data.dat", std::ios::binary);
-            create.close();
-            fileCells.open("data.dat", std::ios::in | std::ios::out | std::ios::binary);
+        std::fstream fileCells("dataCells.dat", std::ios::binary | std::ios::in | std::ios::out);
+        if (!fileCells) {
+            fileCells.open("dataCells.dat", std::ios::binary | std::ios::out);
+            fileCells.close();
+            fileCells.open("dataCells.dat", std::ios::binary | std::ios::in | std::ios::out);
         }
 
-        writeInt32(&fileData, playerX);
-        writeInt32(&fileData, playerY);
-        writeInt32(&fileData, direction);
+        fileData.seekp(0, std::ios::beg);
+
+        fileData.write(reinterpret_cast<char*>(&playerX), sizeof(int));
+        fileData.write(reinterpret_cast<char*>(&playerY), sizeof(int));
+        fileData.write(reinterpret_cast<char*>(&direction), sizeof(int));
+        fileData.write(reinterpret_cast<char*>(&chunkCount), sizeof(int));
+
+        fileData.seekp(0, std::ios::end);
+        fileCells.seekp(0, std::ios::end);
 
         for (const auto& chunkCoords : chunksEdited) {
             Chunk* chunk = &buf.at(chunkCoords);
@@ -176,8 +190,9 @@ namespace Game {
 
             // write chunk if have not before
             if (offset == -1) {
-                fileCells.seekp(0, std::ios::end);
                 offset = fileCells.tellp();
+                chunk->setOffset(offset);
+
                 const auto& cellsData = chunk->getAllCells();
                 for (const auto& cellsRow : cellsData) {
                     for (const auto& cell : cellsRow) {
@@ -185,12 +200,13 @@ namespace Game {
                         fileCells.write(&ch, sizeof(char));
                     }
                 }
-                chunk->setOffset(offset);
 
                 // push new chunk data in fileData with array of chunks offsets
-                writeInt32(&fileData, chunk->getX());
-                writeInt32(&fileData, chunk->getY());
-                writeInt32(&fileData, offset);
+                int x = chunk->getX();
+                int y = chunk->getY();
+                fileData.write(reinterpret_cast<char*>(&x), sizeof(int));
+                fileData.write(reinterpret_cast<char*>(&y), sizeof(int));
+                fileData.write(reinterpret_cast<char*>(&offset), sizeof(int));
             }
             // write chunk if already exist in file
             else {
@@ -203,15 +219,18 @@ namespace Game {
                         fileCells.write(&ch, sizeof(char));
                     }
                 }
+
+                fileCells.seekp(0, std::ios::end);
             }
         }
 
-
+        fileData.close();
         fileCells.close();
+
         chunksEdited.clear();
     }
 
-    void createChunk(int chunkX, int chunkY) {
+    void createEmptyChunk(int chunkX, int chunkY) {
         Chunk chunk;
         for (int y = 0; y < CHUNK_SIZE; y++) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
@@ -223,7 +242,6 @@ namespace Game {
         }
         chunk.setPosition(chunkX, chunkY);
         buf[{chunkX, chunkY}] = chunk;
-        chunksEdited.emplace_back(chunk.getX(), chunk.getY());
         chunkCount++;
         lightShader();
     }
@@ -251,7 +269,7 @@ namespace Game {
         }
     }
 
-    Cell* getCellFromChunk(Chunk& chunk, int x, int y) {
+    Cell* getCellFromChunk(const Chunk& chunk, int x, int y) {
         int chunkX = chunk.getX();
         int chunkY = chunk.getY();
 

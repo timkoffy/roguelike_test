@@ -25,7 +25,7 @@ namespace Game {
 
     inline std::unordered_map<std::pair<int, int>, Chunk, PairHash> buf;
     inline std::vector<std::pair<int, int>> chunksEdited;
-    inline int chunkCount;
+    inline int chunkCount = 0;
 
     inline std::vector<std::unique_ptr<Entity>> entities;
 
@@ -49,7 +49,7 @@ namespace Game {
     void readFromFile();
     void saveToFile();
     void createInitialField();
-    void createChunk(int chunkX, int chunkY);
+    void createEmptyChunk(int chunkX, int chunkY);
     void loadChunks();
 
     // rendering functions
@@ -64,8 +64,8 @@ namespace Game {
     std::pair<int, int> getChunkCoords(const std::pair<int, int>& point);
     std::pair<int, int> getCoordinatesInDirection(const std::pair<int, int>& point, int dir);
     char getCharOnPoint(std::pair<int, int>& point);
-    Cell* getCellFromChunk(Chunk& chunk, int x, int y);
+    Cell* getCellFromChunk(const Chunk& chunk, int x, int y);
     bool isBlockSolid(std::pair<int, int>& point, const Entity* thisEntity);
     bool isBlockSolidPlayer(const std::pair<int, int>& point);
-    void writeInt32(std::fstream* file, int value);
+    // void writeInt32(std::fstream* file, int value);
 }

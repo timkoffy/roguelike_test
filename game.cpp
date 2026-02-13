@@ -16,7 +16,7 @@ namespace Game {
     void runTime(const int rows, const int cols) {
         std::cout << "\033[2J\033[1;1H" << "press any key...";
 
-        // readFromFile();
+        readFromFile();
 
         entities.push_back(std::make_unique<Entities::Orc>(2, 6));
         entities.push_back(std::make_unique<Entities::Orc>(5, 8));
@@ -52,8 +52,6 @@ namespace Game {
             drawField(rows, cols);
             const auto end = std::chrono::high_resolution_clock::now();
             const auto delta = end - start;
-            // std::cout << delta << ' ' << chunkCount;
-            // std::cout.flush();
 
             std::this_thread::sleep_for(FRAME_TIME - delta);
         }
@@ -66,7 +64,8 @@ namespace Game {
 
         std::pair chunkCoords = getChunkCoords(newCoords);
         if (!buf.contains(chunkCoords)) {
-            createChunk(chunkCoords.first, chunkCoords.second);
+            createEmptyChunk(chunkCoords.first, chunkCoords.second);
+            chunksEdited.emplace_back(chunkCoords);
         }
 
         if (!isBlockSolidPlayer(newCoords)) {
@@ -101,6 +100,7 @@ namespace Game {
 
         cell->setChar(ch);
         cell->setColor(Colors::WALL_COLOR);
+        chunksEdited.emplace_back(chunkX, chunkY);
         lightShader();
     }
 
@@ -118,6 +118,8 @@ namespace Game {
 
         cell->setChar('.');
         cell->setColor(Colors::FIELD_COLOR);
+
+        chunksEdited.emplace_back(chunkX, chunkY);
         lightShader();
     }
 
@@ -192,14 +194,14 @@ namespace Game {
         return false;
     }
 
-    void writeInt32(std::fstream* file, int value) {
-        char byte = (unsigned char)(value >> 24);
-        file->write(&byte, 1);
-        byte = (unsigned char)(value >> 16);
-        file->write(&byte, 1);
-        byte = (unsigned char)(value >> 8);
-        file->write(&byte, 1);
-        byte = (unsigned char)(value);
-        file->write(&byte, 1);
-    }
+    // void writeInt32(std::fstream* file, int value) {
+    //     char byte = (unsigned char)(value >> 24);
+    //      file->write(&byte, 1);
+    //     byte = (unsigned char)(value >> 16);
+    //     file->write(&byte, 1);
+    //     byte = (unsigned char)(value >> 8);
+    //     file->write(&byte, 1);
+    //     byte = (unsigned char)(value);
+    //     file->write(&byte, 1);
+    // }
 }

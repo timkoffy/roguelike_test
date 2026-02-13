@@ -10,7 +10,7 @@ constexpr int CHUNK_SIZE = 32;
 class Chunk final {
 public:
     Chunk() = default;
-    Chunk(const int x, const int y) : x(x), y(y) {}
+    Chunk(const int x, const int y, const int offset) : x(x), y(y), offset(offset) {}
 
     ~Chunk() = default;
 
