@@ -5,7 +5,7 @@
 #include "entities.h"
 #include "entity.h"
 
-constexpr int CHUNK_SIZE = 4;
+constexpr int CHUNK_SIZE = 32;
 
 class Chunk final {
 public:

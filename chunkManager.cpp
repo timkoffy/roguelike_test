@@ -92,10 +92,10 @@ namespace Game {
         // //     } std::cout << '\n';
         // // }
 
-        constexpr int n = 2;
+        constexpr int radiusInit = 2;
 
-        for (int x = -n; x <= n; x++) {
-            for (int y = -n; y <= n; y++) {
+        for (int x = -radiusInit; x <= radiusInit; x++) {
+            for (int y = -radiusInit; y <= radiusInit; y++) {
                 createEmptyChunk(x, y);
                 chunksEdited.emplace_back(x, y);
             }
@@ -128,9 +128,8 @@ namespace Game {
         fileData.read(reinterpret_cast<char*>(&playerX), sizeof(int));
         fileData.read(reinterpret_cast<char*>(&playerY), sizeof(int));
         fileData.read(reinterpret_cast<char*>(&direction), sizeof(int));
-        fileData.read(reinterpret_cast<char*>(&chunkCount), sizeof(int));
 
-        for (int i = 0; i < chunkCount; i++) {
+        while (!fileData.eof()) {
             int chunkX; int chunkY; int offset;
 
             fileData.read(reinterpret_cast<char*>(&chunkX), sizeof(int));
@@ -138,7 +137,7 @@ namespace Game {
             fileData.read(reinterpret_cast<char*>(&offset), sizeof(int));
 
             chunkAllOffsets[{chunkX, chunkY}] = offset;
-            // buf[{chunkX, chunkY}] = loadChunkByOffsetFromFile(&fileCells, chunkX, chunkY, offset);
+            chunkCount++;
         }
 
         fileCells.close();
@@ -150,8 +149,8 @@ namespace Game {
         auto [chunkX, chunkY] = getChunkCoords({playerX, playerY});
 
         int n = 1;
-        for (int y = chunkY - n; y < chunkY + n; y++) {
-            for (int x = chunkX - n; x < chunkX + n; x++) {
+        for (int y = chunkY - n; y <= chunkY + n; y++) {
+            for (int x = chunkX - n; x <= chunkX + n; x++) {
                 if (!buf.contains({x, y})) {
                     if (chunkAllOffsets.contains({x, y})) {
                         buf[{x, y}] = loadChunkByOffsetFromFile(&file, x, y, chunkAllOffsets.at({x, y}));
@@ -199,7 +198,6 @@ namespace Game {
         fileData.write(reinterpret_cast<char*>(&playerX), sizeof(int));
         fileData.write(reinterpret_cast<char*>(&playerY), sizeof(int));
         fileData.write(reinterpret_cast<char*>(&direction), sizeof(int));
-        fileData.write(reinterpret_cast<char*>(&chunkCount), sizeof(int));
 
         fileData.seekp(0, std::ios::end);
         fileCells.seekp(0, std::ios::end);
@@ -262,7 +260,6 @@ namespace Game {
         }
         chunk.setPosition(chunkX, chunkY);
         buf[{chunkX, chunkY}] = chunk;
-        chunkCount++;
     }
 
     std::pair<int, int> getChunkCoords(const std::pair<int, int>& point) {
