@@ -47,6 +47,10 @@ namespace Game {
             ticks++;
             // updateAnimations();
 
+            if (ticks % 100 == 0) {
+                loadChunksInPlayerArea();
+            }
+
             // sync fps to 60
             const auto start = std::chrono::high_resolution_clock::now();
             drawField(rows, cols);
@@ -62,11 +66,12 @@ namespace Game {
         const std::pair playerPos{playerX, playerY};
         const auto newCoords = getCoordinatesInDirection(playerPos, direction);
 
-        std::pair chunkCoords = getChunkCoords(newCoords);
-        if (!buf.contains(chunkCoords)) {
-            createEmptyChunk(chunkCoords.first, chunkCoords.second);
-            chunksEdited.emplace_back(chunkCoords);
-        }
+        // std::pair chunkCoords = getChunkCoords(newCoords);
+        // if (!buf.contains(chunkCoords)) {
+        //     createEmptyChunk(chunkCoords.first, chunkCoords.second);
+        //     lightShader();
+        //     chunksEdited.emplace_back(chunkCoords);
+        // }
 
         if (!isBlockSolidPlayer(newCoords)) {
             playerX = newCoords.first;

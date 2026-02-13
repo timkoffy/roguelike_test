@@ -92,7 +92,7 @@ namespace Game {
         // //     } std::cout << '\n';
         // // }
 
-        constexpr int n = 1;
+        constexpr int n = 2;
 
         for (int x = -n; x <= n; x++) {
             for (int y = -n; y <= n; y++) {
@@ -131,29 +131,49 @@ namespace Game {
         fileData.read(reinterpret_cast<char*>(&chunkCount), sizeof(int));
 
         for (int i = 0; i < chunkCount; i++) {
-            int chunkX;
-            int chunkY;
-            int offset;
+            int chunkX; int chunkY; int offset;
 
             fileData.read(reinterpret_cast<char*>(&chunkX), sizeof(int));
             fileData.read(reinterpret_cast<char*>(&chunkY), sizeof(int));
             fileData.read(reinterpret_cast<char*>(&offset), sizeof(int));
 
-            Chunk chunk(chunkX, chunkY, offset);
-            buf[{chunkX, chunkY}] = chunk;
-
-            fileCells.seekg(offset, std::ios::beg);
-            for (int y = 0; y < CHUNK_SIZE; y++) {
-                for (int x = 0; x < CHUNK_SIZE; x++) {
-                    char ch;
-                    fileCells.read(&ch, 1);
-                    buf.at({chunkX, chunkY}).setCell((Cell){x, y, ch});
-                }
-            }
+            chunkAllOffsets[{chunkX, chunkY}] = offset;
+            // buf[{chunkX, chunkY}] = loadChunkByOffsetFromFile(&fileCells, chunkX, chunkY, offset);
         }
 
         fileCells.close();
         fileData.close();
+    }
+
+    void loadChunksInPlayerArea() {
+        std::fstream file("dataCells.dat", std::ios::binary | std::ios::in | std::ios::out);
+        auto [chunkX, chunkY] = getChunkCoords({playerX, playerY});
+
+        int n = 1;
+        for (int y = chunkY - n; y < chunkY + n; y++) {
+            for (int x = chunkX - n; x < chunkX + n; x++) {
+                if (!buf.contains({x, y})) {
+                    if (chunkAllOffsets.contains({x, y})) {
+                        buf[{x, y}] = loadChunkByOffsetFromFile(&file, x, y, chunkAllOffsets.at({x, y}));
+                    }
+                    else createEmptyChunk(x, y);
+                }
+            }
+        }
+        lightShader();
+        file.close();
+    }
+
+    Chunk loadChunkByOffsetFromFile(std::fstream* file, int chunkX, int chunkY, int offset) {
+        Chunk chunk(chunkX, chunkY, offset);
+        file->seekg(offset, std::ios::beg);
+        for (int y = 0; y < CHUNK_SIZE; y++) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                char ch;
+                file->read(&ch, 1);
+                chunk.setCell((Cell){x, y, ch});
+            }
+        } return chunk;
     }
 
     // serialization chunk data
@@ -243,7 +263,6 @@ namespace Game {
         chunk.setPosition(chunkX, chunkY);
         buf[{chunkX, chunkY}] = chunk;
         chunkCount++;
-        lightShader();
     }
 
     std::pair<int, int> getChunkCoords(const std::pair<int, int>& point) {

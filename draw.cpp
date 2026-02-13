@@ -10,7 +10,7 @@ namespace Game {
     void drawField(int rows, int cols) {
         std::cout << "\033[2J\033[1;1H\033[?25l";
         std::cout << "WASD / HJKL - move, QE - rotate, F - block, R - light, C - destroy, Z - exit\n"
-                     "ticks: " << ticks << " x: " << playerX << " y: " << playerY;
+                     "ticks: " << ticks << " x: " << playerX << " y: " << playerY << " chunks: " << chunkCount;
         {
             // top side padding
             int y = (rows - VIEWPORT_ROWS) / 2 - 1;

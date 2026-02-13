@@ -12,7 +12,7 @@ namespace Game {
         }
     };
 
-    constexpr int VIEWPORT_ROWS = 15; // 11 canon
+    constexpr int VIEWPORT_ROWS = 17; // 11 canon
     constexpr int VIEWPORT_COLS = VIEWPORT_ROWS * 2 - 1;
     constexpr auto FRAME_TIME = std::chrono::milliseconds(16); // 16 = 60fps
 
@@ -25,6 +25,7 @@ namespace Game {
 
     inline std::unordered_map<std::pair<int, int>, Chunk, PairHash> buf;
     inline std::vector<std::pair<int, int>> chunksEdited;
+    inline std::unordered_map<std::pair<int, int>, int, PairHash> chunkAllOffsets;
     inline int chunkCount = 0;
 
     inline std::vector<std::unique_ptr<Entity>> entities;
@@ -47,10 +48,11 @@ namespace Game {
 
     // chunk managing
     void readFromFile();
+    Chunk loadChunkByOffsetFromFile(std::fstream* file, int chunkX, int chunkY, int offset);
+    void loadChunksInPlayerArea();
     void saveToFile();
     void createInitialField();
     void createEmptyChunk(int chunkX, int chunkY);
-    void loadChunks();
 
     // rendering functions
     void drawField(int rows, int cols);
